@@ -129,8 +129,12 @@ export default function Dashboard() {
               <label htmlFor="category" className="text-sm text-gray-300">
                 Category
               </label>
-              <select id="category" className="border rounded-md p-2 text-sm border-gray-300 text-gray-300 ">
-                <option value="" disabled selected>
+              <select
+                id="category"
+                defaultValue=""
+                className="border rounded-md p-2 text-sm border-gray-300 text-gray-300"
+              >
+                <option value="" disabled>
                   Select Category
                 </option>
                 <option value="food">Food</option>
