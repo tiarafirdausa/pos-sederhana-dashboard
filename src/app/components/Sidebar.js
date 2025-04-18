@@ -25,7 +25,7 @@ export default function Sidebar() {
       <nav className="space-y-2">
         {menu.map((item) => (
           <Link key={item.path} href={item.path}>
-            <div className={`flex items-center gap-2 p-2 rounded cursor-pointer ${
+            <div className={`flex items-center gap-4 p-2 mt-2 rounded cursor-pointer ${
               pathname === item.path ? "bg-blue-100" : "hover:bg-gray-100"
             }`}>
               <Image src={item.icon} alt={item.name} width={26} height={26}  />
