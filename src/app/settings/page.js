@@ -1,12 +1,14 @@
 "use client";
+import App from "next/app";
 import Image from "next/image";
 
 export default function Settings() {
   return (
     <div className="space-y-6">
-      {/* Header: Title */}
+      {/* Header*/}
       <h1 className="text-2xl font-bold">Settings</h1>
 
+      {/* Account */}
       <h2 className="text-xl font-semibold">Account</h2>
       <div className="flex items-center gap-4">
         <Image
@@ -24,6 +26,7 @@ export default function Settings() {
         </button>
       </div>
 
+      {/* Account Details */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="text-sm text-gray-500">Email</label>
@@ -74,6 +77,7 @@ export default function Settings() {
 
       <hr className="my-4 border-t border-gray-200" />
 
+      {/* Password */}
       <div className="grid grid-cols-3 gap-4">
         <h2 className="col-span-3 text-xl font-semibold">Password</h2>
         <div>
@@ -91,6 +95,7 @@ export default function Settings() {
 
       <hr className="my-4 border-t border-gray-200" />
 
+      {/* Appareance */}
       <div className="grid grid-cols-3 gap-4">
         <h2 className="col-span-3 text-xl font-semibold">Appearance</h2>
         <div>

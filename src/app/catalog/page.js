@@ -105,7 +105,7 @@ const categories = [
 ];
 
 export default function Catalog() {
-  const [selectedCategory, setSelectedCategory] = useState("All Menu");
+  const [selectedCategory, setSelectedCategory] = useState("All Menu"); // State untuk kategori yang dipilih
   const [showForm, setShowForm] = useState(false); // State untuk menampilkan form
   const [selectedMenu, setSelectedMenu] = useState(null); // State untuk detail menu yang dipilih
 
@@ -187,9 +187,9 @@ export default function Catalog() {
                 <button
                   onClick={() => {
                     if (selectedMenu && selectedMenu.name === item.name) {
-                      setSelectedMenu(null); // klik ulang → tutup detail
+                      setSelectedMenu(null); // klik ulang > tutup detail
                     } else {
-                      setSelectedMenu(item); // klik menu lain → buka detail baru
+                      setSelectedMenu(item); // klik menu lain > buka detail baru
                       setShowForm(false); // pastikan form tertutup
                     }
                   }}
@@ -266,7 +266,7 @@ export default function Catalog() {
                     : "bg-blue-600 text-white font-bold"
                 }`}
               >
-                {showForm ? "×" : "+"}
+                {showForm ? "x" : "+"}
               </button>
             )}
           </div>
@@ -278,7 +278,6 @@ export default function Catalog() {
         {selectedMenu && (
           <div className="w-full mt-2">
             <form className="w-full flex flex-col gap-4">
-              {/* Image */}
               <div>
                 <Image
                   src={selectedMenu.image}
@@ -289,7 +288,6 @@ export default function Catalog() {
                 />
               </div>
 
-              {/* Name */}
               <div>
                 <label className="text-gray-700">Name</label>
                 <input
@@ -300,7 +298,6 @@ export default function Catalog() {
                 />
               </div>
 
-              {/* Category */}
               <div>
                 <label className="text-gray-700">Category</label>
                 <select
@@ -314,7 +311,6 @@ export default function Catalog() {
                 </select>
               </div>
 
-              {/* Price */}
               <div>
                 <label className="text-gray-700">Price</label>
                 <input
@@ -325,7 +321,6 @@ export default function Catalog() {
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="text-gray-700">Description</label>
                 <textarea

@@ -20,7 +20,7 @@ const data = [
       { name: "Burger", quantity: 2, price: 50000 },
       { name: "Fries", quantity: 1, price: 20000 },
     ],
-    paymentReceived: 150000, // Pembayaran yang diterima
+    paymentReceived: 150000, 
   },
   {
     orderNo: "#ORD002",
@@ -32,10 +32,9 @@ const data = [
       { name: "Coffee", quantity: 1, price: 30000 },
       { name: "Tea", quantity: 2, price: 15000 },
     ],
-    paymentReceived: 120000, // Pembayaran yang diterima
+    paymentReceived: 120000,
   },
 
-  // ... data lainnya
 ];
 
 const itemsPerPage = 5;
@@ -86,7 +85,7 @@ export default function SalesReport() {
 
   return (
     <div className="space-y-6">
-      {/* Header: Title + Date */}
+      {/* Header*/}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Sales Report</h1>
         <p className="text-sm text-gray-500">{today}</p>
@@ -208,7 +207,7 @@ export default function SalesReport() {
           </table>
         </div>
 
-        {/* Pagination with Show Entries */}
+        {/* Pagination*/}
         <div className="flex justify-between items-center mt-4">
           {/* Show Entries Filter */}
           <div className="flex items-center space-x-2">
@@ -267,7 +266,6 @@ export default function SalesReport() {
         {selectedTransaction && (
           <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
             <div className="bg-white px-18 py-20 rounded-xl shadow-md w-full max-w-xl space-y-4 relative">
-              {/* Close Button */}
               <button
                 onClick={closeDetailModal}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
