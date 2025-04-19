@@ -108,6 +108,7 @@ export default function Catalog() {
   const [selectedCategory, setSelectedCategory] = useState("All Menu"); // State untuk kategori yang dipilih
   const [showForm, setShowForm] = useState(false); // State untuk menampilkan form
   const [selectedMenu, setSelectedMenu] = useState(null); // State untuk detail menu yang dipilih
+  const [isEditMode, setIsEditMode] = useState(false); // State untuk mode edit
 
   // Filter berdasarkan kategori
   const filteredItems =
@@ -119,7 +120,7 @@ export default function Catalog() {
   const toggleForm = () => setShowForm(!showForm);
 
   return (
-    <div className="flex h-screen gap-6">
+    <div className="flex h-screen gap-4">
       {/* Left Section */}
       <div className="w-2/3 overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
@@ -136,7 +137,7 @@ export default function Catalog() {
             <button
               key={category.label}
               onClick={() => setSelectedCategory(category.label)}
-              className={`flex justify-center items-center gap-2 px-6 py-4 rounded-lg text-xl ${
+              className={`flex justify-center items-center gap-2 px-6 py-4 rounded-lg text-xl cursor-pointer ${
                 selectedCategory === category.label
                   ? "bg-blue-600 text-white"
                   : "border border-gray-300 hover:bg-gray-300 text-gray-400"
@@ -160,7 +161,7 @@ export default function Catalog() {
           {filteredItems.map((item, index) => (
             <div
               key={index}
-              className={`bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition ${
+              className={`bg-white rounded-lg p-2 hover:shadow-md transition ${
                 selectedMenu && selectedMenu.name === item.name
                   ? "border-2 border-blue-500"
                   : ""
@@ -188,8 +189,10 @@ export default function Catalog() {
                   onClick={() => {
                     if (selectedMenu && selectedMenu.name === item.name) {
                       setSelectedMenu(null); // klik ulang > tutup detail
+                      setIsEditMode(false); // pastikan mode edit tertutup
                     } else {
                       setSelectedMenu(item); // klik menu lain > buka detail baru
+                      setIsEditMode(false); // pastikan mode edit tertutup
                       setShowForm(false); // pastikan form tertutup
                     }
                   }}
@@ -199,6 +202,7 @@ export default function Catalog() {
                     alt="maximize"
                     width={18}
                     height={18}
+                    className="cursor-pointer"
                   />
                 </button>
               </div>
@@ -208,20 +212,19 @@ export default function Catalog() {
       </div>
 
       {/* Right Section (Add Menu) */}
-      <div className="w-1/3 p-6 bg-white rounded-lg flex flex-col items-center justify-start">
+      <div className="w-1/3 p-5 bg-white rounded-2xl flex flex-col items-center justify-start">
         <div className="w-full flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
             {showForm ? "Add Menu" : selectedMenu ? "Menu Detail" : "Add Menu"}
           </h2>
           <div className="flex items-center gap-4">
             {/* Edit Button */}
-            {selectedMenu && (
+            {selectedMenu && !isEditMode && (
               <button
                 onClick={() => {
-                  // Logic for edit action
-                  console.log("Edit menu");
+                  setIsEditMode(true); // Activate edit mode
                 }}
-                className="p-2 border border-yellow-500 rounded-md"
+                className="p-2 border border-yellow-500 rounded-md cursor-pointer"
               >
                 <Image
                   src="/assets/icons/edit-2.svg"
@@ -233,13 +236,13 @@ export default function Catalog() {
             )}
 
             {/* Delete Button */}
-            {selectedMenu && (
+            {selectedMenu && !isEditMode && (
               <button
                 onClick={() => {
                   // Logic for delete action
                   console.log("Delete menu");
                 }}
-                className="p-2 border border-red-500 rounded-md"
+                className="p-2 border border-red-500 rounded-md cursor-pointer"
               >
                 <Image
                   src="/assets/icons/trash.svg"
@@ -250,17 +253,17 @@ export default function Catalog() {
               </button>
             )}
 
-            {/* Add Menu + close Button */}
+            {/* Add Menu + Close Button */}
             {!selectedMenu && (
               <button
                 onClick={() => {
                   if (showForm) {
-                    setShowForm(false); // tutup form
+                    setShowForm(false); // Close form
                   } else {
-                    setShowForm(true); // buka form
+                    setShowForm(true); // Open form
                   }
                 }}
-                className={`justify-center items-center w-10 h-10 rounded-lg text-xl ${
+                className={`justify-center items-center w-10 h-10 rounded-lg text-xl cursor-pointer ${
                   showForm
                     ? "text-gray-500"
                     : "bg-blue-600 text-white font-bold"
@@ -275,19 +278,18 @@ export default function Catalog() {
         <hr className="w-full border-t border-gray-200 my-2" />
 
         {/* Jika detail menu ditampilkan */}
-        {selectedMenu && (
+        {selectedMenu && !isEditMode && (
           <div className="w-full mt-2">
             <form className="w-full flex flex-col gap-4">
               <div>
                 <Image
                   src={selectedMenu.image}
                   alt={selectedMenu.name}
-                  width={300}
-                  height={200}
-                  className="rounded-md"
+                  width={400}
+                  height={300}
+                  className="rounded-md mx-auto"
                 />
               </div>
-
               <div>
                 <label className="text-gray-700">Name</label>
                 <input
@@ -297,7 +299,6 @@ export default function Catalog() {
                   className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
                 />
               </div>
-
               <div>
                 <label className="text-gray-700">Category</label>
                 <select
@@ -310,27 +311,102 @@ export default function Catalog() {
                   <option value="Dessert">Dessert</option>
                 </select>
               </div>
-
               <div>
                 <label className="text-gray-700">Price</label>
                 <input
                   type="text"
                   value={selectedMenu.price}
                   readOnly
-                  className="w-full mt-1 p-3 border border-gray-200 rounded-md  text-black"
+                  className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
                 />
               </div>
-
               <div>
                 <label className="text-gray-700">Description</label>
                 <textarea
                   value={selectedMenu.description}
                   readOnly
-                  className="w-full mt-1 p-3 border border-gray-200 rounded-md  text-black"
+                  className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
                 />
               </div>
             </form>
           </div>
+        )}
+
+        {/* Jika dalam mode edit */}
+        {selectedMenu && isEditMode && (
+          <div className="w-full mt-2">
+          <form
+            className="w-full flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              // Simpan perubahan di sini (belum ada handler penyimpanan nyata)
+              console.log("Save edited menu");
+              setIsEditMode(false); // Kembali ke mode detail
+            }}
+          >
+            <div className="text-center">
+              <Image
+                src={selectedMenu.image}
+                alt={selectedMenu.name}
+                width={400}
+                height={300}
+                className="rounded-md mx-auto mb-6"
+              />
+              <label
+                htmlFor="editImageUpload"
+                className="p-3 cursor-pointer text-sm text-blue-600 border border-blue-700 rounded-md text-center"
+              >
+                Change Photo
+              </label>
+              <input type="file" id="editImageUpload" className="hidden" />
+            </div>
+
+            <div>
+              <label className="text-gray-700">Name</label>
+              <input
+                type="text"
+                defaultValue={selectedMenu.name}
+                className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
+              />
+            </div>
+
+            <div>
+              <label className="text-gray-700">Category</label>
+              <select
+                defaultValue={selectedMenu.category}
+                className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black cursor-pointer"
+              >
+                <option value="Foods">Foods</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Dessert">Dessert</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-gray-700">Price</label>
+              <input
+                type="text"
+                defaultValue={selectedMenu.price}
+                className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
+              />
+            </div>
+
+            <div>
+              <label className="text-gray-700">Description</label>
+              <textarea
+                defaultValue={selectedMenu.description}
+                className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-blue-600 mt-6 p-3 text-white rounded-md cursor-pointer"
+            >
+              Save
+            </button>
+          </form>
+        </div>
         )}
 
         {/* Tampilkan form jika showForm true */}
@@ -361,7 +437,7 @@ export default function Catalog() {
               <select
                 id="category"
                 defaultValue=""
-                className="w-full border rounded-md mt-1 p-3 border-gray-200 text-gray-300"
+                className="w-full border rounded-md mt-1 p-3 border-gray-200 text-gray-300 cursor-pointer"
               >
                 <option value="" disabled>
                   Select Category
@@ -388,7 +464,7 @@ export default function Catalog() {
             </div>
             <button
               type="submit"
-              className="bg-blue-600 mt-6 text-white rounded-md p-2"
+              className="bg-blue-600 mt-6 text-white rounded-md p-2 cursor-pointer"
             >
               Save Menu
             </button>
