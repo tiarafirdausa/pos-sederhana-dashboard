@@ -2,14 +2,100 @@
 import Image from "next/image";
 import { useState } from "react";
 
-const menuItems = Array(12).fill({
-  name: "Gado-gado Special",
-  price: "Rp 20.000",
-  description:
-    "Vegetables, egg, tempe, tofu, lontong, peanut sauce, and kerupuk",
-  image: "/assets/img/gado-gado.png",
-  category: "Foods",
-});
+const menuItems = [
+  {
+    name: "Gado-gado Special",
+    price: "Rp 20.000",
+    description:
+      "Vegetables, egg, tempe, tofu, lontong, peanut sauce, and kerupuk",
+    image: "/assets/img/gado-gado.png",
+    category: "Foods",
+  },
+  {
+    name: "Nasi Goreng",
+    price: "Rp 25.000",
+    description: "Fried rice with chicken, shrimp, and vegetables",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Foods",
+  },
+  {
+    name: "Soto Ayam",
+    price: "Rp 18.000",
+    description: "Traditional chicken soup with rice and boiled egg",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Foods",
+  },
+  {
+    name: "Es Teh Manis",
+    price: "Rp 5.000",
+    description: "Sweet iced tea",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Beverages",
+  },
+  {
+    name: "Kopi Hitam",
+    price: "Rp 10.000",
+    description: "Black coffee with no sugar",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Beverages",
+  },
+  {
+    name: "Cake Coklat",
+    price: "Rp 15.000",
+    description: "Rich chocolate cake with a soft texture",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Dessert",
+  },
+  {
+    name: "Pisang Goreng",
+    price: "Rp 12.000",
+    description: "Fried banana served with chocolate syrup",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Dessert",
+  },
+  {
+    name: "Mie Goreng",
+    price: "Rp 22.000",
+    description: "Fried noodles with vegetables and chicken",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Foods",
+  },
+  {
+    name: "Es Jeruk",
+    price: "Rp 8.000",
+    description: "Fresh orange juice with ice",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Beverages",
+  },
+  {
+    name: "Puding Kelapa",
+    price: "Rp 10.000",
+    description: "Coconut pudding with a creamy texture",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Dessert",
+  },
+  {
+    name: "Ayam Penyet",
+    price: "Rp 30.000",
+    description: "Fried chicken with sambal and rice",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Foods",
+  },
+  {
+    name: "Teh Tarik",
+    price: "Rp 7.000",
+    description: "Traditional Malaysian pulled tea",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Beverages",
+  },
+  {
+    name: "Pavlova",
+    price: "Rp 20.000",
+    description: "Merengue-based dessert with fresh fruits",
+    image: "/assets/img/gado-gado.png", // Same image for all
+    category: "Dessert",
+  },
+];
 
 const categories = [
   { label: "All Menu" },
@@ -18,7 +104,7 @@ const categories = [
   { label: "Dessert", icon: "/assets/icons/cake-gray.svg" },
 ];
 
-export default function CatalogPage() {
+export default function Catalog() {
   const [selectedCategory, setSelectedCategory] = useState("All Menu");
   const [showForm, setShowForm] = useState(false); // State untuk menampilkan form
   const [selectedMenu, setSelectedMenu] = useState(null); // State untuk detail menu yang dipilih
@@ -74,7 +160,11 @@ export default function CatalogPage() {
           {filteredItems.map((item, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition"
+              className={`bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition ${
+                selectedMenu && selectedMenu.name === item.name
+                  ? "border-2 border-blue-500"
+                  : ""
+              }`}
             >
               <div className="relative h-40 w-full mb-2 overflow-hidden rounded">
                 <Image
@@ -83,7 +173,7 @@ export default function CatalogPage() {
                   layout="fill"
                   objectFit="cover"
                 />
-                <span className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-3xl ">
+                <span className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-3xl">
                   {item.category}
                 </span>
               </div>
@@ -96,8 +186,12 @@ export default function CatalogPage() {
                 </p>
                 <button
                   onClick={() => {
-                    setSelectedMenu(item); // buka detail
-                    setShowForm(false); // tutup form
+                    if (selectedMenu && selectedMenu.name === item.name) {
+                      setSelectedMenu(null); // klik ulang → tutup detail
+                    } else {
+                      setSelectedMenu(item); // klik menu lain → buka detail baru
+                      setShowForm(false); // pastikan form tertutup
+                    }
                   }}
                 >
                   <Image
@@ -119,19 +213,63 @@ export default function CatalogPage() {
           <h2 className="text-xl font-semibold">
             {showForm ? "Add Menu" : selectedMenu ? "Menu Detail" : "Add Menu"}
           </h2>
-          <button
-            onClick={() => {
-                if (selectedMenu || showForm) {
-                  setSelectedMenu(null); // tutup detail
-                  setShowForm(false);    // tutup form
-                } else {
-                  setShowForm(true);     // buka form
-                }
-              }}
-            className="justify-center items-center w-10 h-10 bg-blue-600 text-white rounded-lg text-xl font-bold"
-          >
-            {selectedMenu || showForm ? "×" : "+"}
-          </button>
+          <div className="flex items-center gap-4">
+            {/* Edit Button */}
+            {selectedMenu && (
+              <button
+                onClick={() => {
+                  // Logic for edit action
+                  console.log("Edit menu");
+                }}
+                className="p-2 border border-yellow-500 rounded-md"
+              >
+                <Image
+                  src="/assets/icons/edit-2.svg"
+                  alt="edit"
+                  width={18}
+                  height={18}
+                />
+              </button>
+            )}
+
+            {/* Delete Button */}
+            {selectedMenu && (
+              <button
+                onClick={() => {
+                  // Logic for delete action
+                  console.log("Delete menu");
+                }}
+                className="p-2 border border-red-500 rounded-md"
+              >
+                <Image
+                  src="/assets/icons/trash.svg"
+                  alt="delete"
+                  width={18}
+                  height={18}
+                />
+              </button>
+            )}
+
+            {/* Add Menu + close Button */}
+            {!selectedMenu && (
+              <button
+                onClick={() => {
+                  if (showForm) {
+                    setShowForm(false); // tutup form
+                  } else {
+                    setShowForm(true); // buka form
+                  }
+                }}
+                className={`justify-center items-center w-10 h-10 rounded-lg text-xl ${
+                  showForm
+                    ? "text-gray-500"
+                    : "bg-blue-600 text-white font-bold"
+                }`}
+              >
+                {showForm ? "×" : "+"}
+              </button>
+            )}
+          </div>
         </div>
 
         <hr className="w-full border-t border-gray-200 my-2" />

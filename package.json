@@ -6,10 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "server": "json-server --watch db.json --port 3030"
+
   },
   "dependencies": {
-    "@next/font": "^14.2.15",
+    "next/font": "^14.2.15",
     "chart.js": "^4.4.9",
     "next": "15.3.0",
     "react": "^19.0.0",
