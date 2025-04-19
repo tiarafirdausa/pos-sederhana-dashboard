@@ -127,8 +127,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-gray-500">{today}</p>
+        <h4 className="text-2xl font-medium">Dashboard</h4>
+        <p className="text-sm text-[var(--neutral-grey7)]">{today}</p>
       </div>
 
       {/* Stats Cards */}
@@ -152,10 +152,10 @@ export default function Dashboard() {
               </button>
             )}
 
-            <p className="text-sm text-gray-500">{item.title}</p>
+            <p className="text-sm text-black">{item.title}</p>
             <div className="flex items-center gap-2 mt-1">
               <Image src={item.icon} alt={item.title} width={20} height={20} />
-              <p className="text-lg font-bold">{item.value}</p>
+              <p className="text-lg font-medium">{item.value}</p>
             </div>
           </div>
         ))}
@@ -164,36 +164,36 @@ export default function Dashboard() {
       {/* Chart Section */}
       <div className="bg-white p-4 rounded-xl shadow-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Total Omzet</h3>
+          <h4 className="text-lg font-medium">Total Omzet</h4>
           <div className="flex gap-4">
             <div className="flex flex-col ">
-              <label htmlFor="start-date" className="text-sm text-gray-300">
+              <label htmlFor="start-date" className="text-sm font-light text-[var(--neutral-grey3)]">
                 Start Date
               </label>
               <input
                 type="date"
                 id="start-date"
-                className="border rounded-md p-2 text-sm border-gray-300 text-gray-300"
+                className="border rounded-md p-2 text-sm font-light border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
               />
             </div>
             <div className="flex flex-col">
-              <label htmlFor="finish-date" className="text-sm text-gray-300">
+              <label htmlFor="finish-date" className="text-sm font-light text-[var(--neutral-grey3)]">
                 Finish Date
               </label>
               <input
                 type="date"
                 id="finish-date"
-                className="border rounded-md p-2 text-sm border-gray-300 text-gray-300"
+                className="border rounded-md p-2 text-sm font-light border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
               />
             </div>
             <div className="flex flex-col">
-              <label htmlFor="category" className="text-sm text-gray-300">
+              <label htmlFor="category" className="text-sm font-light text-[var(--neutral-grey3)]">
                 Category
               </label>
               <select
                 id="category"
                 defaultValue=""
-                className="border rounded-md p-2 text-sm border-gray-300 text-gray-300"
+                className="border rounded-md p-2 text-sm font-light border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
               >
                 <option value="" disabled>
                   Select Category
@@ -223,7 +223,7 @@ export default function Dashboard() {
               &times;
             </button>
 
-            <h2 className="text-2xl font-semibold">{selectedStat.title}</h2>
+            <h4 className="text-2xl font-medium">{selectedStat.title}</h4>
 
             {/* Search Input */}
             <div className="relative w-full mb-4">
@@ -237,7 +237,7 @@ export default function Dashboard() {
               <input
                 type="text"
                 placeholder="Enter the keyword here..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm text-gray-300"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--neutral-grey2)] focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm font-light text-[var(--neutral-grey3)]"
               />
             </div>
 
@@ -246,7 +246,7 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <table className="w-full text-sm mt-2">
                   <thead className="bg-gray-100">
-                    <tr className="text-left font-semibold">
+                    <tr className="text-left font-medium">
                       <th className="p-3">Menu Name</th>
                       <th className="p-3">Total Sales</th>
                     </tr>

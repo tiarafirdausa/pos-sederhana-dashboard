@@ -87,8 +87,8 @@ export default function SalesReport() {
     <div className="space-y-6">
       {/* Header*/}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Sales Report</h1>
-        <p className="text-sm text-gray-500">{today}</p>
+        <h4 className="text-2xl font-medium">Sales Report</h4>
+        <p className="text-sm text-[var(--neutral-grey7)]">{today}</p>
       </div>
 
       <div className="bg-white shadow-md rounded-lg p-6">
@@ -96,36 +96,36 @@ export default function SalesReport() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="start-date" className="text-sm text-gray-600">
-                Start Date
+              <label htmlFor="start-date" className="text-sm text-[var(--neutral-grey7)]">
+                Start
               </label>
               <input
                 type="date"
                 id="start-date"
-                className="w-full border rounded-md p-2 text-sm border-gray-300 text-gray-600"
+                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
               />
             </div>
             <div>
-              <label htmlFor="finish-date" className="text-sm text-gray-600">
-                Finish Date
+              <label htmlFor="finish-date" className="text-sm text-[var(--neutral-grey7)]">
+                Finish
               </label>
               <input
                 type="date"
                 id="finish-date"
-                className="w-full border rounded-md p-2 text-sm border-gray-300 text-gray-600"
+                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label htmlFor="category" className="text-sm text-gray-600">
+              <label htmlFor="category" className="text-sm text-[var(--neutral-grey7)]">
                 Category
               </label>
               <select
                 id="category"
                 defaultValue=""
-                className="w-full border rounded-md p-2 text-sm border-gray-300 text-gray-600"
+                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
               >
                 <option value="" disabled>
                   Select Category
@@ -137,13 +137,13 @@ export default function SalesReport() {
             </div>
 
             <div>
-              <label htmlFor="type" className="text-sm text-gray-600">
+              <label htmlFor="type" className="text-sm text-[var(--neutral-grey7)]">
                 Order Type
               </label>
               <select
                 id="type"
                 defaultValue=""
-                className="w-full border rounded-md p-2 text-sm border-gray-300 text-gray-600"
+                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
               >
                 <option value="" disabled>
                   Select Order Type
@@ -155,10 +155,10 @@ export default function SalesReport() {
             </div>
 
             <div className="flex items-end gap-2">
-              <button className="w-full h-10 bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition">
+              <button className="w-full h-10 bg-[var(--blue1-main)] text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition">
                 Search
               </button>
-              <button className="w-10 h-10 border border-gray-300 rounded-md hover:bg-gray-300 transition flex justify-center items-center">
+              <button className="w-10 h-10 border border-[var(--neutral-grey5)] rounded-md hover:bg-gray-300 transition flex justify-center items-center">
                 <Image
                   src="/assets/icons/frame.svg"
                   alt="export"
@@ -173,7 +173,7 @@ export default function SalesReport() {
         {/* Tabel Section */}
         <div className="overflow-x-auto bg-white rounded-t mt-6">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-100 text-left text-gray-600">
+            <thead className="bg-[var(--neutral-grey1)] border-0 text-left text-black font-medium">
               <tr>
                 <th className="px-4 py-3">No Order</th>
                 <th className="px-4 py-3">Order Date</th>
@@ -183,7 +183,7 @@ export default function SalesReport() {
                 <th className="px-4 py-3">Detail</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-gray-700">
+            <tbody className="divide-y divide-gray-100 text-black border-b border-[var(--neutral-grey1)]">
               {currentItems.map((item, index) => (
                 <tr key={index}>
                   <td className="px-4 py-3">{item.orderNo}</td>
@@ -211,18 +211,18 @@ export default function SalesReport() {
         <div className="flex justify-between items-center mt-4">
           {/* Show Entries Filter */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Show:</span>
+            <span className="text-sm text-[var(--neutral-grey7)]">Show:</span>
             <select
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
               value={itemsPerPage}
-              className="border rounded-md p-2 text-sm text-gray-600"
+              className="border border-[var(--neutral-grey2)] rounded-md p-2 text-sm"
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={15}>15</option>
               <option value={20}>20</option>
             </select>
-            <span className="text-sm text-gray-600">Entries</span>
+            <span className="text-sm text-[var(--neutral-grey7)]">Entries</span>
           </div>
 
           {/* Pagination Controls */}
@@ -230,7 +230,7 @@ export default function SalesReport() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md"
+              className="px-4 py-2 bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)] rounded-2xl"
             >
               &lt;
             </button>
@@ -241,10 +241,10 @@ export default function SalesReport() {
                 <button
                   key={index}
                   onClick={() => setCurrentPage(index + 1)}
-                  className={`px-4 py-2 text-sm rounded-md ${
+                  className={`px-4 py-2 text-sm rounded-2xl ${
                     currentPage === index + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-300 text-gray-600"
+                      ? "bg-[var(--blue1-main)] text-white"
+                      : "bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)]"
                   }`}
                 >
                   {index + 1}
@@ -255,7 +255,7 @@ export default function SalesReport() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md"
+              className="px-4 py-2 bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)] rounded-2xl"
             >
               &gt;
             </button>
@@ -273,25 +273,25 @@ export default function SalesReport() {
               >
                 &times;
               </button>
-              <h2 className="text-2xl text-center font-semibold mb-2 mt-2">
+              <h2 className="text-3xl text-center font-medium mb-2 mt-2">
                 Transaction Details
               </h2>
-              <div className="bg-gray-100 p-4 rounded-md">
-                <p className="text-gray-700 text-sm mb-1">
-                  <span className="text-gray-600"> Order No</span>{" "}
+              <div className="bg-[var(--neutral-grey1)] p-4 rounded-md">
+                <p className="text-[var(--neutral-grey7)] text-sm mb-1">
+                  <span className="text-[var(--neutral-grey6)] font-light">No Order</span>{" "}
                   {selectedTransaction.orderNo}
                 </p>
-                <p className="text-gray-700 text-sm mb-1">
-                  <span className="text-gray-600"> Date</span>{" "}
+                <p className="text-[var(--neutral-grey7)] text-sm mb-1">
+                  <span className="text-[var(--neutral-grey6)] font-light">Date</span>{" "}
                   {selectedTransaction.date}
                 </p>
-                <p className="text-gray-700 text-sm mb-1">
-                  <span className="text-gray-600"> Customer</span>{" "}
+                <p className="text-[var(--neutral-grey7)] text-sm mb-1">
+                  <span className="text-[var(--neutral-grey6)] font-light">Customer Name</span>{" "}
                   {selectedTransaction.customer}
                 </p>
                 <p className="text-sm mb-1">{selectedTransaction.type}</p>
 
-                <hr className=" border-t border-gray-200 mb-4" />
+                <hr className=" border-t border-[var(--neutral-grey2)] mb-4" />
 
                 <ul>
                   {selectedTransaction.items.map((item, index) => (
@@ -300,37 +300,37 @@ export default function SalesReport() {
                       className="flex justify-between items-center mb-2"
                     >
                       <div className="flex flex-col items-start">
-                        <span className="text-lg font-semibold">
+                        <span className="text-2xl font-medium">
                           {item.name}
                         </span>
-                        <span className="text-xs text-gray-700">
+                        <span className="text-xs text-[var(--neutral-grey7)]">
                           {item.quantity} x Rp {item.price}
                         </span>
                       </div>
-                      <span className="text-sm font-semibold">
+                      <span className="text-sm font-medium">
                         Rp {item.price * item.quantity}
                       </span>
                     </li>
                   ))}
                 </ul>
 
-                <hr className=" border border-dashed border-gray-200 mb-4 mt-4" />
+                <hr className=" border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
 
                 {/* Sub Total, Tax, Total, Kembalian */}
                 {calculateTotals(selectedTransaction) && (
                   <>
                     <p className="flex justify-between items-center text-sm mb-2">
-                      <span className="text-gray-500">Sub Total</span>
-                      <span className="text-gray-700">
+                      <span className="text-[var(--neutral-grey5)]">Sub Total</span>
+                      <span className="text-[var(--neutral-grey7)]">
                         Rp {calculateTotals(selectedTransaction).subTotal}
                       </span>
                     </p>
                     <p className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500">Tax</span>
-                      <span className="text-gray-700">Rp {calculateTotals(selectedTransaction).tax}</span>
+                      <span className="text-[var(--neutral-grey5)]">Tax</span>
+                      <span className="text-[var(--neutral-grey7)]">Rp {calculateTotals(selectedTransaction).tax}</span>
                     </p>
 
-                    <hr className="border border-dashed border-gray-200 mb-4 mt-4" />
+                    <hr className=" border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
 
                     <p className="flex justify-between items-center mb-4">
                       <span className="text-lg" >Total</span>
@@ -339,12 +339,12 @@ export default function SalesReport() {
                       </span>
                     </p>
                     <p className="flex justify-between items-center text-sm mb-2">
-                      <span  className="text-gray-500">Diterima</span>
-                      <span className="text-gray-700">Rp {selectedTransaction.paymentReceived}</span>
+                      <span  className="text-[var(--neutral-grey5)]">Diterima</span>
+                      <span className="text-black">Rp {selectedTransaction.paymentReceived}</span>
                     </p>
                     <p className="flex justify-between items-center text-sm">
-                      <span  className="text-gray-500">Kembalian</span>
-                      <span  className="text-gray-700">
+                      <span  className="text-[var(--neutral-grey5)]">Kembalian</span>
+                      <span  className="text-black">
                         Rp {calculateTotals(selectedTransaction).change}
                       </span>
                     </p>
