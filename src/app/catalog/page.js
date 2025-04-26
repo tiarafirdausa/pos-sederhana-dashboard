@@ -125,7 +125,7 @@ export default function Catalog() {
       <div className="w-2/3 overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">List Menu</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm font text-[var(--neutral-grey5)]">
             Total{" "}
             <span className="text-black"> {filteredItems.length} Menu </span>
           </p>
@@ -139,8 +139,8 @@ export default function Catalog() {
               onClick={() => setSelectedCategory(category.label)}
               className={`flex justify-center items-center gap-2 px-6 py-4 rounded-lg text-xl cursor-pointer ${
                 selectedCategory === category.label
-                  ? "bg-blue-600 text-white"
-                  : "border border-gray-300 hover:bg-gray-300 text-gray-400"
+                  ? "bg-[var(--blue1-main)] text-white"
+                  : "border border-[var(--neutral-grey3)] hover:bg-[var(--neutral-grey3)] text-[var(--neutral-grey4)]"
               }`}
             >
               {category.icon && (
@@ -174,16 +174,16 @@ export default function Catalog() {
                   layout="fill"
                   objectFit="cover"
                 />
-                <span className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-3xl">
+                <span className="absolute top-1 right-1 bg-[var(--blue1-main)] text-white text-xs px-2 py-1 rounded-3xl">
                   {item.category}
                 </span>
               </div>
-              <h3 className="text-sm font-semibold">{item.name}</h3>
-              <p className="text-xs text-gray-500">{item.description}</p>
+              <h3 className="text-lg font-medium">{item.name}</h3>
+              <p className="text-xs font-light text-[var(--neutral-grey5)]">{item.description}</p>
               <div className="flex items-center justify-between mt-1">
-                <p className="text-blue-600 font-bold text-sm">
+                <p className="text-[var(--blue1-main)] font-semibold text-sm">
                   {item.price}{" "}
-                  <span className="text-gray-500 text-xs">/ portion</span>
+                  <span className="text-[var(--neutral-grey5)] font-light text-xs">/ portion</span>
                 </p>
                 <button
                   onClick={() => {
