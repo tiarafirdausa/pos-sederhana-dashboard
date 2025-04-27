@@ -71,17 +71,6 @@ export default function SalesReport() {
     }
   };
 
-  // Menghitung sub total, tax, total diterima, dan kembalian
-  const calculateTotals = (transaction) => {
-    const subTotal = transaction.items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-    const tax = subTotal * 0.1; // Misalnya pajak 10%
-    const total = subTotal + tax;
-    const change = transaction.paymentReceived - total;
-    return { subTotal, tax, total, change };
-  };
 
   return (
     <div className="space-y-6">
@@ -278,15 +267,21 @@ export default function SalesReport() {
               </h2>
               <div className="bg-[var(--neutral-grey1)] p-4 rounded-md">
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
-                  <span className="text-[var(--neutral-grey6)] font-light">No Order</span>{" "}
+                  <span className="text-[var(--neutral-grey6)] font-light">
+                    No Order
+                  </span>{" "}
                   {selectedTransaction.orderNo}
                 </p>
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
-                  <span className="text-[var(--neutral-grey6)] font-light">Date</span>{" "}
+                  <span className="text-[var(--neutral-grey6)] font-light">
+                    Date
+                  </span>{" "}
                   {selectedTransaction.date}
                 </p>
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
-                  <span className="text-[var(--neutral-grey6)] font-light">Customer Name</span>{" "}
+                  <span className="text-[var(--neutral-grey6)] font-light">
+                    Customer Name
+                  </span>{" "}
                   {selectedTransaction.customer}
                 </p>
                 <p className="text-sm mb-1">{selectedTransaction.type}</p>
@@ -317,36 +312,40 @@ export default function SalesReport() {
                 <hr className=" border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
 
                 {/* Sub Total, Tax, Total, Kembalian */}
-                {calculateTotals(selectedTransaction) && (
+                {selectedTransaction && (
                   <>
                     <p className="flex justify-between items-center text-sm mb-2">
-                      <span className="text-[var(--neutral-grey5)]">Sub Total</span>
-                      <span className="text-[var(--neutral-grey7)]">
-                        Rp {calculateTotals(selectedTransaction).subTotal}
+                      <span className="text-[var(--neutral-grey5)]">
+                        Sub Total
                       </span>
-                    </p>
-                    <p className="flex justify-between items-center text-sm">
-                      <span className="text-[var(--neutral-grey5)]">Tax</span>
-                      <span className="text-[var(--neutral-grey7)]">Rp {calculateTotals(selectedTransaction).tax}</span>
-                    </p>
-
-                    <hr className=" border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
-
-                    <p className="flex justify-between items-center mb-4">
-                      <span className="text-lg" >Total</span>
-                      <span className="text-xl font-semibold">
-                        Rp {calculateTotals(selectedTransaction).total}
+                      <span className="text-[var(--neutral-grey7)]">
+                        Rp 100.000
                       </span>
                     </p>
                     <p className="flex justify-between items-center text-sm mb-2">
-                      <span  className="text-[var(--neutral-grey5)]">Diterima</span>
-                      <span className="text-black">Rp {selectedTransaction.paymentReceived}</span>
+                      <span className="text-[var(--neutral-grey5)]">Tax</span>
+                      <span className="text-[var(--neutral-grey7)]">
+                        Rp 10.000
+                      </span>
+                    </p>
+
+                    <hr className="border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
+
+                    <p className="flex justify-between items-center mb-4">
+                      <span className="text-lg">Total</span>
+                      <span className="text-xl font-semibold">Rp 110.000</span>
+                    </p>
+                    <p className="flex justify-between items-center text-sm mb-2">
+                      <span className="text-[var(--neutral-grey5)]">
+                        Diterima
+                      </span>
+                      <span className="text-black">Rp 150.000</span>
                     </p>
                     <p className="flex justify-between items-center text-sm">
-                      <span  className="text-[var(--neutral-grey5)]">Kembalian</span>
-                      <span  className="text-black">
-                        Rp {calculateTotals(selectedTransaction).change}
+                      <span className="text-[var(--neutral-grey5)]">
+                        Kembalian
                       </span>
+                      <span className="text-black">Rp 40.000</span>
                     </p>
                   </>
                 )}

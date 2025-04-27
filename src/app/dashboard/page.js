@@ -26,11 +26,14 @@ ChartJS.register(
 
 export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
-  const [selectedStat, setSelectedStat] = useState(null);
+  const [selectedStat, setSelectedStat] = useState(null); 
 
-  const openDetailModal = (item) => {
-    setSelectedStat(item);
-    setShowModal(true);
+  const openStatDetail = (stat) => {
+    setSelectedStat(stat);
+  };
+
+  const closeStatDetail = () => {
+    setSelectedStat(null);
   };
 
   const today = new Date().toLocaleDateString("id-ID", {
@@ -140,7 +143,7 @@ export default function Dashboard() {
           >
             {["Foods", "Beverages", "Desserts"].includes(item.title) && (
               <button
-                onClick={() => openDetailModal(item)}
+                onClick={() => openStatDetail(item)}
                 className="absolute bottom-4 right-4"
               >
                 <Image
@@ -210,65 +213,65 @@ export default function Dashboard() {
         <Bar data={data} />
       </div>
 
-      {/* Detail Modal */}
-      {showModal && selectedStat && (
-        <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-md w-[90%] max-w-md space-y-4 relative">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
-              aria-label="Close"
-            >
-              &times;
-            </button>
+        {/* Modal Detail Stat */}
+        {selectedStat && (
+          <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-md w-[90%] max-w-md space-y-4 relative">
+              {/* Close Button */}
+              <button
+                onClick={closeStatDetail}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                aria-label="Close"
+              >
+                &times;
+              </button>
 
-            <h4 className="text-2xl font-medium">{selectedStat.title}</h4>
+              <h4 className="text-2xl font-medium">{selectedStat.title}</h4>
 
-            {/* Search Input */}
-            <div className="relative w-full mb-4">
-              <Image
-                src="/assets/icons/search-normal.svg"
-                alt="Search Icon"
-                width={16}
-                height={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2"
-              />
-              <input
-                type="text"
-                placeholder="Enter the keyword here..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--neutral-grey2)] focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm font-light text-[var(--neutral-grey3)]"
-              />
-            </div>
-
-            {/* Table */}
-            {selectedStat.details ? (
-              <div className="space-y-2">
-                <table className="w-full text-sm mt-2">
-                  <thead className="bg-gray-100">
-                    <tr className="text-left font-medium">
-                      <th className="p-3">Menu Name</th>
-                      <th className="p-3">Total Sales</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedStat.details.map((item, idx) => (
-                      <tr key={idx} className="border-b border-gray-100">
-                        <td className="p-3">{item.name}</td>
-                        <td className="p-3">{item.total}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Search Input */}
+              <div className="relative w-full mb-4">
+                <Image
+                  src="/assets/icons/search-normal.svg"
+                  alt="Search Icon"
+                  width={16}
+                  height={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                />
+                <input
+                  type="text"
+                  placeholder="Enter the keyword here..."
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--neutral-grey2)] focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm font-light text-[var(--neutral-grey3)]"
+                />
               </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                Tidak ada data yang tersedia.
-              </p>
-            )}
+
+              {/* Table */}
+              {selectedStat.details ? (
+                <div className="space-y-2">
+                  <table className="w-full text-sm mt-2">
+                    <thead className="bg-gray-100">
+                      <tr className="text-left font-medium">
+                        <th className="p-3">Menu Name</th>
+                        <th className="p-3">Total Sales</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedStat.details.map((item, idx) => (
+                        <tr key={idx} className="border-b border-gray-100">
+                          <td className="p-3">{item.name}</td>
+                          <td className="p-3">{item.total}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Tidak ada data yang tersedia.
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
