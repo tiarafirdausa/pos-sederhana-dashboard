@@ -180,7 +180,7 @@ export default function Catalog() {
               </div>
               <h3 className="text-lg font-medium">{item.name}</h3>
               <p className="text-xs font-light text-[var(--neutral-grey5)]">{item.description}</p>
-              <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center justify-between mt-2">
                 <p className="text-[var(--blue1-main)] font-semibold text-sm">
                   {item.price}{" "}
                   <span className="text-[var(--neutral-grey5)] font-light text-xs">/ portion</span>

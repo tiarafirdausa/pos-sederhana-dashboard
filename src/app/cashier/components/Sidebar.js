@@ -4,10 +4,9 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 
 const menu = [
-  { name: "Dashboard", path: "/dashboard", icon: "/assets/icons/element-3.svg" },
-  { name: "Catalog", path: "/catalog", icon: "/assets/icons/menu-board.svg" },
-  { name: "Sales Report", path: "/sales-report", icon: "/assets/icons/clipboard-text.svg" },
-  { name: "Settings", path: "/settings", icon: "/assets/icons/setting-2.svg" },
+  { name: "Cashier", path: "/cashier/dashboard", icon: "/assets/icons/shop.svg" },
+  { name: "Sales Report", path: "/cashier/sales-report", icon: "/assets/icons/clipboard-text.svg" },
+  { name: "Settings", path: "/cashier/settings", icon: "/assets/icons/setting-2.svg" },
 ];
 
 export default function Sidebar() {

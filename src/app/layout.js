@@ -1,6 +1,8 @@
 import "./globals.css";
-import Sidebar from "./components/Sidebar";
-import Navbar from "./components/Navbar";
+// import Sidebar from "./admin/components/Sidebar";
+// import Navbar from "./admin/components/Navbar";
+import Sidebar from "./cashier/components/Sidebar";
+import Navbar from "./cashier/components/Navbar";
 import { Roboto } from "next/font/google";
 
 const roboto = Roboto({
