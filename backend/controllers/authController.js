@@ -63,3 +63,19 @@ exports.registerCashier = async (req, res) => {
         res.status(500).send({ message: 'Terjadi kesalahan server.' });
     }
 };
+
+exports.logout = async (req, res) => {
+    const token = req.logoutToken; 
+  
+    if (!token) {
+      return res.status(400).json({ message: 'Token tidak ditemukan.' });
+    }
+  
+    try {
+      await db.execute('INSERT INTO blacklisted_tokens (token) VALUES (?)', [token]);
+      res.status(200).json({ message: 'Logout berhasil.' });
+    } catch (error) {
+      console.error('Error saat logout:', error);
+      res.status(500).json({ message: 'Terjadi kesalahan server saat logout.' });
+    }
+  };
