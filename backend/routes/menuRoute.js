@@ -3,9 +3,10 @@ const router = express.Router();
 const menuController = require('../controllers/menuController');
 
 // Endpoint CRUD
-router.get('/', menuController.getAllMenus);       // GET semua menu
-router.post('/', menuController.createMenu);       // POST tambah menu
-router.put('/:id', menuController.updateMenu);     // PUT update menu by id
-router.delete('/:id', menuController.deleteMenu);  // DELETE menu by id
+router.get('/', menuController.getAllMenus); 
+router.get('/:id', menuController.getMenuById);
+router.post('/', menuController.createMenu);   
+router.put('/:id', menuController.updateMenu);
+router.delete('/:id', menuController.deleteMenu);  
 
 module.exports = router;

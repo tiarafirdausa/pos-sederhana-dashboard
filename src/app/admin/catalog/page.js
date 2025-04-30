@@ -44,11 +44,11 @@ export default function Catalog() {
     e.preventDefault();
 
     const formDataToSend = new FormData();
-    formDataToSend.append("image", formData.image); // Append the image file
-    formDataToSend.append("name", formData.name);
+    formDataToSend.append("image", formData.image);
     formDataToSend.append("category", formData.category);
     formDataToSend.append("price", formData.price);
     formDataToSend.append("description", formData.description);
+    formDataToSend.append("name", formData.name);
 
     try {
       const response = await fetch("http://localhost:5000/menu", {
@@ -57,16 +57,14 @@ export default function Catalog() {
       });
 
       if (response.ok) {
-        // If successful, reload the menu data or update the state
-        setShowForm(false); // Hide the form after submitting
+        setShowForm(false);
         setFormData({
           image: null,
           name: "",
           category: "",
           price: "",
           description: "",
-        }); // Clear form data
-        // You can also refetch the menu data to show the new menu
+        });
         const res = await fetch("http://localhost:5000/menu");
         const newMenus = await res.json();
         setMenuItems(newMenus);
@@ -78,11 +76,63 @@ export default function Catalog() {
     }
   };
 
+  // Handle form submission for edit mode
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    // Buat FormData untuk dikirim
+    const updateData = new FormData();
+    if (formData.image) {
+      updateData.append("image", formData.image);
+    }
+    updateData.append("name", formData.name);
+    updateData.append("category", formData.category);
+    updateData.append("price", formData.price);
+    updateData.append("description", formData.description);
+    try {
+      console.log("Submitting form with data:", formData); // Log data yang dikirim
+      const response = await fetch(
+        `http://localhost:5000/menu/${selectedMenu.id}`,
+        {
+          method: "PUT",
+          body: updateData,
+        }
+      );
+      if (response.ok) {
+        const updatedDetailRes = await fetch(`http://localhost:5000/menu/${selectedMenu.id}`);
+        const updatedDetail = await updatedDetailRes.json();
+        setMenuItems((prev) =>
+          prev.map((item) => (item.id === updatedDetail.id ? updatedDetail : item))
+        );
+        setSelectedMenu(updatedDetail);
+        setIsEditMode(false);
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to update menu:", errorData);
+      }
+    } catch (error) {
+      console.error("Error updating menu:", error);
+    }
+  };
+
+  // Handle edit menu value
+  useEffect(() => {
+    if (selectedMenu && isEditMode) {
+      console.log("Loading menu for edit:", selectedMenu); // Log selectedMenu untuk verifikasi
+      setFormData({
+        image: null,
+        name: selectedMenu.name || "",
+        category: selectedMenu.category || "",
+        price: selectedMenu.price || "",
+        description: selectedMenu.description || "",
+      });
+    }
+  }, [selectedMenu, isEditMode]);
+
   // Handle image file change
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
-      image: e.target.files[0], // Save the file to the form data state
+      image: e.target.files[0],
     });
   };
 
@@ -107,11 +157,11 @@ export default function Catalog() {
       const fetchMenuDetail = async () => {
         setLoading(true);
         try {
+          console.log("Selected Menu ID:", selectedMenu?.id);
           const response = await fetch(
             `http://localhost:5000/menu/${selectedMenu.id}`
           );
           const data = await response.json();
-          setSelectedMenu(data); // Update selectedMenu dengan data baru
         } catch (error) {
           console.error("Failed to fetch selected menu data:", error);
         } finally {
@@ -127,13 +177,12 @@ export default function Catalog() {
   const deleteMenuItem = async (menuId) => {
     try {
       const response = await fetch(`http://localhost:5000/menu/${menuId}`, {
-        method: "DELETE", // Metode untuk menghapus data
+        method: "DELETE",
       });
 
       if (response.ok) {
-        // Jika berhasil menghapus menu, hapus menu dari state
         setMenuItems(menuItems.filter((item) => item.id !== menuId));
-        setSelectedMenu(null); // Reset selected menu setelah penghapusan
+        setSelectedMenu(null);
       } else {
         console.error("Failed to delete menu");
       }
@@ -223,7 +272,7 @@ export default function Catalog() {
                 </p>
                 <button
                   onClick={() => {
-                    if (selectedMenu && selectedMenu.name === item.name) {
+                    if (selectedMenu && selectedMenu.id === item.id) {
                       setSelectedMenu(null);
                       setIsEditMode(false);
                     } else {
@@ -258,7 +307,7 @@ export default function Catalog() {
             {selectedMenu && !isEditMode && (
               <button
                 onClick={() => {
-                  setIsEditMode(true); // Activate edit mode
+                  setIsEditMode(true);
                 }}
                 className="p-2 border border-yellow-500 rounded-md cursor-pointer"
               >
@@ -276,7 +325,7 @@ export default function Catalog() {
               <button
                 onClick={() => {
                   if (selectedMenu) {
-                    deleteMenuItem(selectedMenu.id); // Panggil fungsi deleteMenuItem dengan ID menu yang dipilih
+                    deleteMenuItem(selectedMenu.id);
                   }
                 }}
                 className="p-2 border border-red-500 rounded-md cursor-pointer"
@@ -344,9 +393,9 @@ export default function Catalog() {
                   disabled
                   className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
                 >
-                  <option value="Foods">Foods</option>
-                  <option value="Beverages">Beverages</option>
-                  <option value="Dessert">Dessert</option>
+                  <option value="food">Foods</option>
+                  <option value="beverage">Beverages</option>
+                  <option value="dessert">Dessert</option>
                 </select>
               </div>
               <div>
@@ -375,35 +424,49 @@ export default function Catalog() {
           <div className="w-full mt-2">
             <form
               className="w-full flex flex-col gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                // Simpan perubahan di sini (belum ada handler penyimpanan nyata)
-                console.log("Save edited menu");
-                setIsEditMode(false); // Kembali ke mode detail
-              }}
+              onSubmit={handleEditSubmit}
             >
               <div className="text-center">
-                <Image
-                  src={selectedMenu.image}
-                  alt={selectedMenu.name}
-                  width={400}
-                  height={300}
-                  className="rounded-md mx-auto mb-6"
-                />
+                {formData.image ? (
+                  <Image
+                    src={URL.createObjectURL(formData.image)}
+                    alt="preview"
+                    width={400}
+                    height={300}
+                    className="rounded-md mx-auto mb-6"
+                  />
+                ) : (
+                  <Image
+                    src={`http://localhost:5000/${selectedMenu.image}`}
+                    alt={selectedMenu.name}
+                    width={400}
+                    height={300}
+                    className="rounded-md mx-auto mb-6"
+                  />
+                )}
+
                 <label
                   htmlFor="editImageUpload"
                   className="p-3 cursor-pointer text-sm text-blue-600 border border-blue-700 rounded-md text-center"
                 >
                   Change Photo
                 </label>
-                <input type="file" id="editImageUpload" className="hidden" />
+                <input
+                  type="file"
+                  id="editImageUpload"
+                  name="image"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
               </div>
 
               <div>
                 <label className="text-gray-700">Name</label>
                 <input
                   type="text"
-                  defaultValue={selectedMenu.name}
+                  name="name"
+                  value={formData.name}
+                  onChange={handleFormChange}
                   className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
                 />
               </div>
@@ -411,20 +474,24 @@ export default function Catalog() {
               <div>
                 <label className="text-gray-700">Category</label>
                 <select
-                  defaultValue={selectedMenu.category}
+                  name="category"
+                  value={formData.category}
+                  onChange={handleFormChange}
                   className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black cursor-pointer"
                 >
-                  <option value="Foods">Foods</option>
-                  <option value="Beverages">Beverages</option>
-                  <option value="Dessert">Dessert</option>
+                  <option value="food">Foods</option>
+                  <option value="beverage">Beverages</option>
+                  <option value="dessert">Dessert</option>
                 </select>
               </div>
 
               <div>
                 <label className="text-gray-700">Price</label>
                 <input
-                  type="text"
-                  defaultValue={selectedMenu.price}
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleFormChange}
                   className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
                 />
               </div>
@@ -432,7 +499,9 @@ export default function Catalog() {
               <div>
                 <label className="text-gray-700">Description</label>
                 <textarea
-                  defaultValue={selectedMenu.description}
+                  name="description"
+                  value={formData.description}
+                  onChange={handleFormChange}
                   className="w-full mt-1 p-3 border border-gray-200 rounded-md text-black"
                 />
               </div>
@@ -454,21 +523,21 @@ export default function Catalog() {
             onSubmit={handleFormSubmit}
           >
             <div>
-  <label className="text-gray-700">Image</label>
-  <div className="w-full mt-1 p-12 border border-dashed border-blue-500 rounded-md text-center cursor-pointer text-gray-400 hover:border-blue-400 transition">
-    <label htmlFor="imageUpload" className="cursor-pointer block">
-      Drag and drop here or{" "}
-      <span className="text-blue-600 underline">choose file</span>
-    </label>
-    <input
-      type="file"
-      id="imageUpload"
-      name="image"
-      className="hidden"
-      onChange={handleFileChange}
-    />
-  </div>
-</div>
+              <label className="text-gray-700">Image</label>
+              <div className="w-full mt-1 p-12 border border-dashed border-blue-500 rounded-md text-center cursor-pointer text-gray-400 hover:border-blue-400 transition">
+                <label htmlFor="imageUpload" className="cursor-pointer block">
+                  Drag and drop here or{" "}
+                  <span className="text-blue-600 underline">choose file</span>
+                </label>
+                <input
+                  type="file"
+                  id="imageUpload"
+                  name="image"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+            </div>
             <div>
               <label className="text-gray-700">Name</label>
               <input
@@ -502,7 +571,7 @@ export default function Catalog() {
             <div>
               <label className="text-gray-700">Price</label>
               <input
-                type="text"
+                type="number"
                 name="price"
                 value={formData.price}
                 onChange={handleFormChange}

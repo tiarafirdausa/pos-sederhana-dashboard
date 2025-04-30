@@ -11,7 +11,24 @@ exports.getAllMenus = async (req, res) => {
     res.status(500).json({ message: 'Failed to get menus' });
   }
 };
-  
+
+// Get menu by ID
+exports.getMenuById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [menu] = await db.query('SELECT * FROM menu WHERE id = ?', [id]);
+
+    if (menu.length === 0) {
+      return res.status(404).json({ message: 'Menu not found' });
+    }
+
+    res.json(menu[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to get menu' });
+  }
+};
+
 // Tambah menu baru
 exports.createMenu = [
     upload.single('image'),
@@ -36,11 +53,11 @@ exports.createMenu = [
 // Update menu
 exports.updateMenu = [
     upload.single('image'),  
-    handleImage,             
     async (req, res) => {
       try {
         const { id } = req.params;
-        const { name, category, price, description, image } = req.body;
+        const { name, category, price, description } = req.body;
+        const image = req.file ? `uploads/${req.file.filename}` : null;
   
         await db.query(
           'UPDATE menu SET image = ?, name = ?, category = ?, price = ?, description = ? WHERE id = ?',

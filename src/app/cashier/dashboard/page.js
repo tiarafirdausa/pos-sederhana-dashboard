@@ -1,115 +1,40 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
-const menuItems = [
-  {
-    name: "Gado-gado Special",
-    price: "Rp 20.000",
-    description:
-      "Vegetables, egg, tempe, tofu, lontong, peanut sauce, and kerupuk",
-    image: "/assets/img/gado-gado.png",
-    category: "Foods",
-  },
-  {
-    name: "Nasi Goreng",
-    price: "Rp 25.000",
-    description: "Fried rice with chicken, shrimp, and vegetables",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Foods",
-  },
-  {
-    name: "Soto Ayam",
-    price: "Rp 18.000",
-    description: "Traditional chicken soup with rice and boiled egg",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Foods",
-  },
-  {
-    name: "Es Teh Manis",
-    price: "Rp 5.000",
-    description: "Sweet iced tea",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Beverages",
-  },
-  {
-    name: "Kopi Hitam",
-    price: "Rp 10.000",
-    description: "Black coffee with no sugar",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Beverages",
-  },
-  {
-    name: "Cake Coklat",
-    price: "Rp 15.000",
-    description: "Rich chocolate cake with a soft texture",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Dessert",
-  },
-  {
-    name: "Pisang Goreng",
-    price: "Rp 12.000",
-    description: "Fried banana served with chocolate syrup",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Dessert",
-  },
-  {
-    name: "Mie Goreng",
-    price: "Rp 22.000",
-    description: "Fried noodles with vegetables and chicken",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Foods",
-  },
-  {
-    name: "Es Jeruk",
-    price: "Rp 8.000",
-    description: "Fresh orange juice with ice",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Beverages",
-  },
-  {
-    name: "Puding Kelapa",
-    price: "Rp 10.000",
-    description: "Coconut pudding with a creamy texture",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Dessert",
-  },
-  {
-    name: "Ayam Penyet",
-    price: "Rp 30.000",
-    description: "Fried chicken with sambal and rice",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Foods",
-  },
-  {
-    name: "Teh Tarik",
-    price: "Rp 7.000",
-    description: "Traditional Malaysian pulled tea",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Beverages",
-  },
-  {
-    name: "Pavlova",
-    price: "Rp 20.000",
-    description: "Merengue-based dessert with fresh fruits",
-    image: "/assets/img/gado-gado.png", // Same image for all
-    category: "Dessert",
-  },
-];
-
 const categories = [
-  { label: "All Menu" },
-  { label: "Foods", icon: "/assets/icons/reserve-gray.svg" },
-  { label: "Beverages", icon: "/assets/icons/coffee-gray.svg" },
-  { label: "Dessert", icon: "/assets/icons/cake-gray.svg" },
+  { label: "All Menu", value: "all" },
+  { label: "Foods", value: "food", icon: "/assets/icons/reserve-gray.svg" },
+  {
+    label: "Beverages",
+    value: "beverage",
+    icon: "/assets/icons/coffee-gray.svg",
+  },
+  { label: "Dessert", value: "dessert", icon: "/assets/icons/cake-gray.svg" },
 ];
 
 export default function Dashboard() {
-  const [selectedCategory, setSelectedCategory] = useState("All Menu");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [orderItems, setOrderItems] = useState([]); // untuk mencatat pesanan
   const [orderType, setOrderType] = useState("dine-in"); // defaultnya 'dine-in'
   const [customerName, setCustomerName] = useState("");
   const [selectedMenu, setSelectedMenu] = useState(null);
+  const [menuItems, setMenuItems] = useState([]); // State untuk menyimpan data menu dari API
+
+  // Fetch menu data from API
+  useEffect(() => {
+    const fetchMenus = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/menu");
+        const data = await response.json();
+        setMenuItems(data);
+      } catch (error) {
+        console.error("Failed to fetch menu data:", error);
+      }
+    };
+
+    fetchMenus();
+  }, []);
 
   const openDetailMenu = (menu) => {
     setSelectedMenu(menu); // Menyimpan menu yang dipilih
@@ -121,7 +46,7 @@ export default function Dashboard() {
 
   // Filter berdasarkan kategori
   const filteredItems =
-    selectedCategory === "All Menu"
+    selectedCategory === "all"
       ? menuItems
       : menuItems.filter((item) => item.category === selectedCategory);
 
@@ -179,10 +104,10 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 text-center">
           {categories.map((category) => (
             <button
-              key={category.label}
-              onClick={() => setSelectedCategory(category.label)}
+              key={category.value}
+              onClick={() => setSelectedCategory(category.value)}
               className={`flex justify-center items-center gap-2 px-6 py-4 rounded-lg text-xl cursor-pointer ${
-                selectedCategory === category.label
+                selectedCategory === category.value
                   ? "bg-[var(--blue1-main)] text-white"
                   : "border border-[var(--neutral-grey3)] hover:bg-[var(--neutral-grey3)] text-[var(--neutral-grey4)]"
               }`}
@@ -190,7 +115,7 @@ export default function Dashboard() {
               {category.icon && (
                 <Image
                   src={category.icon}
-                  alt={category.label}
+                  alt={category.value}
                   width={20}
                   height={20}
                 />
@@ -210,7 +135,7 @@ export default function Dashboard() {
             >
               <div className="relative h-40 w-full mb-2 overflow-hidden rounded">
                 <Image
-                  src={item.image}
+                  src={`http://localhost:5000/${item.image}`}
                   alt={item.name}
                   layout="fill"
                   objectFit="cover"
@@ -411,25 +336,23 @@ export default function Dashboard() {
             <hr className="border border-[var(--neutral-grey3)] mb-4" />
 
             <div className="relative h-50 w-full mb-2 overflow-hidden rounded">
-                <Image
-                  src={selectedMenu.image}
-                  alt={selectedMenu.name}
-                  layout="fill"
-                  objectFit="cover"
-                />
-              </div>
-              <p className=" top-1 right-1 bg-[var(--blue1-main)] text-white text-xs px-2 py-1 rounded-3xl">
-                  {selectedMenu.category}
-                </p>
-              <h3 className="text-lg font-medium">{selectedMenu.name}</h3>
-              <p className="text-xs font-light text-[var(--neutral-grey5)]">
-                {selectedMenu.description}
-              </p>
-                <p className="text-[var(--blue1-main)] font-semibold text-sm">
-                  {selectedMenu.price}
-                </p>
-            
-
+              <Image
+                src={selectedMenu.image}
+                alt={selectedMenu.name}
+                layout="fill"
+                objectFit="cover"
+              />
+            </div>
+            <p className=" top-1 right-1 bg-[var(--blue1-main)] text-white text-xs px-2 py-1 rounded-3xl">
+              {selectedMenu.category}
+            </p>
+            <h3 className="text-lg font-medium">{selectedMenu.name}</h3>
+            <p className="text-xs font-light text-[var(--neutral-grey5)]">
+              {selectedMenu.description}
+            </p>
+            <p className="text-[var(--blue1-main)] font-semibold text-sm">
+              {selectedMenu.price}
+            </p>
           </div>
         </div>
       )}
