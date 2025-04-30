@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./models/db');
 const menuRoutes = require('./routes/menuRoute');
+const authRoutes = require('./routes/authRoute');
 
 const port = 5000;
 const app = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // Route
 app.use('/menu', menuRoutes);
+app.use('/auth', authRoutes); 
 app.use('/uploads', express.static('uploads'));
 
 // Cek koneksi database dan start server
