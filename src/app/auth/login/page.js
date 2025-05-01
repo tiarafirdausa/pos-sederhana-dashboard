@@ -1,9 +1,9 @@
 "use client";
 
+import Link from 'next/link';
 import { useState } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -16,7 +16,7 @@ export default function Login() {
     event.preventDefault();
     setLoading(true);
     setError("");
-  
+
     try {
       const response = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
@@ -25,13 +25,15 @@ export default function Login() {
         },
         body: JSON.stringify({ username, password }),
       });
-  
+
       const contentType = response.headers.get("content-type");
-  
+
       if (!response.ok) {
         if (contentType && contentType.includes("application/json")) {
           const errorData = await response.json();
-          setError(errorData.message || `Login gagal! Status: ${response.status}`);
+          setError(
+            errorData.message || `Login gagal! Status: ${response.status}`
+          );
           console.error("Login gagal:", errorData);
         } else {
           const text = await response.text();
@@ -40,8 +42,8 @@ export default function Login() {
         }
       } else {
         const data = await response.json();
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userRole', data.role);
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userRole", data.role);
         console.log(`Login ${data.role} berhasil:`, data);
         router.push(`/${data.role}/dashboard`);
       }
@@ -52,7 +54,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="relative w-full h-screen">
@@ -74,9 +75,7 @@ export default function Login() {
               height={100}
               className="rounded-full"
             />
-            <h2 className="text-2xl font-bold text-center">
-              Welcome Back!
-            </h2>
+            <h2 className="text-2xl font-bold text-center">Welcome Back!</h2>
             <p className="text-gray-600 text-sm text-center">
               Please enter your username and password here!
             </p>
@@ -114,7 +113,10 @@ export default function Login() {
             </div>
 
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+              <div
+                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                role="alert"
+              >
                 <strong className="font-bold">Error!</strong>
                 <span className="block sm:inline">{error}</span>
               </div>
@@ -122,12 +124,21 @@ export default function Login() {
 
             <button
               type="submit"
-              className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
+
+          <div className="text-center mt-4 text-sm text-gray-600">
+            Don't have an account? 
+            <Link href="/auth/register" className="text-blue-600 font-medium hover:underline">
+              Register
+            </Link>
+          </div>
         </div>
       </div>
     </div>
