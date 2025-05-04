@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { getCurrentUser } from "@/utils/auth"; // Import fungsi untuk mendapatkan user saat ini
+// import { getCurrentUser } from "@/utils/auth"; // Import fungsi untuk mendapatkan user saat ini
 
 const categories = [
   { label: "All Menu", value: "all" },
@@ -24,8 +24,7 @@ export default function Dashboard() {
   const [selectedMenu, setSelectedMenu] = useState(null);
   const [menuItems, setMenuItems] = useState([]); // State untuk menyimpan data menu dari API
   const [tableNumber, setTableNumber] = useState("");
-  const [paymentAmount, setPaymentAmount] = useState(0);
-  const [changeAmount, setChangeAmount] = useState(0);
+  const [amountReceived, setAmountReceived] = useState(0);
 
   const handleAddNotes = (item) => {
     setNoteModalItem(item);
@@ -110,7 +109,7 @@ export default function Dashboard() {
 
   // Submit Order
   const handleSubmitOrder = async () => {
-    if (orderItems.length === 0 || !customerName || !paymentAmount) {
+    if (orderItems.length === 0 || !customerName || !amountReceived) {
       alert(
         "Please add items to the order, fill customer details, and provide payment."
       );
@@ -125,17 +124,16 @@ export default function Dashboard() {
         menuId: item.id,
         quantity: item.quantity,
         notes: item.notes || "",
+        price: item.price,
       })),
       subtotal,
       tax,
       total,
-      paymentAmount,
-      changeAmount,
-      userId: getCurrentUser().id,
+      amountReceived,
+      userId:3,
     };
 
-    console.log("Payment Amount:", paymentAmount);
-    console.log("Change Amount:", changeAmount);
+    // console.log(userId);
 
     console.log("Data yang akan dikirim ke server:", orderData);
 
@@ -155,15 +153,15 @@ export default function Dashboard() {
         setOrderItems([]);
         setCustomerName("");
         setTableNumber("");
-        setPaymentAmount(0);
-        setChangeAmount(0);
+        setAmountReceived(0);
       } else {
         const errorData = await response.json(); // Coba parse body error
         console.error("Failed to place order:", errorData);
-        alert("Failed to place order.");      }
+        alert("Failed to place order.");
+      }
     } catch (error) {
       console.error("Error submitting order:", error);
-  alert("Failed to place order.");
+      alert("Failed to place order.");
     }
   };
 
@@ -438,7 +436,7 @@ export default function Dashboard() {
                 <h3 className="font-semibold mb-2">Select Nominal</h3>
                 {/* tombol nominal */}
                 {/* <div className="flex gap-2 justify-center mb-2 "> */}
-                  {/* <button
+                {/* <button
                     onClick={() => setPaymentAmount(50000 - total)}
                     className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-100"
                   >
@@ -461,26 +459,14 @@ export default function Dashboard() {
                 {/* input manual */}
                 <input
                   type="number"
-                  value={paymentAmount}
+                  value={amountReceived}
                   onChange={(e) => {
-                    setPaymentAmount(Number(e.target.value));
-                    if (Number(e.target.value) >= total) {
-                      setChangeAmount(Number(e.target.value) - total);
-                    } else {
-                      setChangeAmount(0);
-                    }
+                    setAmountReceived(Number(e.target.value));
                   }}
                   placeholder="Enter Nominal here..."
                   className="border border-gray-100 rounded-md px-3 py-2 w-full text-sm text-center"
                 />
               </div>
-              {/* Display Change Amount */}
-              {paymentAmount > total && (
-                <div className="mt-2 flex justify-between font-semibold">
-                  <span>Change</span>
-                  <span>Rp {changeAmount.toLocaleString()}</span>
-                </div>
-              )}
             </div>
           )}
 
