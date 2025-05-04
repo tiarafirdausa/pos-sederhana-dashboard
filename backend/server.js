@@ -3,6 +3,7 @@ const cors = require('cors');
 const db = require('./models/db');
 const menuRoutes = require('./routes/menuRoute');
 const authRoutes = require('./routes/authRoute');
+const orderRoutes = require('./routes/orderRoute'); 
 
 const port = 5000;
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 // Route
 app.use('/menu', menuRoutes);
 app.use('/auth', authRoutes); 
+app.use('/', orderRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // Cek koneksi database dan start server

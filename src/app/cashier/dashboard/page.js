@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { getCurrentUser } from "@/utils/auth"; // Import fungsi untuk mendapatkan user saat ini
 
 const categories = [
   { label: "All Menu", value: "all" },
@@ -15,11 +16,31 @@ const categories = [
 
 export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [noteModalItem, setNoteModalItem] = useState(null); // item yang sedang ditambahkan catatan
+  const [noteInput, setNoteInput] = useState(""); // isi catatan sementara
   const [orderItems, setOrderItems] = useState([]); // untuk mencatat pesanan
-  const [orderType, setOrderType] = useState("dine-in"); // defaultnya 'dine-in'
+  const [orderType, setOrderType] = useState("dine_in"); // defaultnya 'dine-in'
   const [customerName, setCustomerName] = useState("");
   const [selectedMenu, setSelectedMenu] = useState(null);
   const [menuItems, setMenuItems] = useState([]); // State untuk menyimpan data menu dari API
+  const [tableNumber, setTableNumber] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [changeAmount, setChangeAmount] = useState(0);
+
+  const handleAddNotes = (item) => {
+    setNoteModalItem(item);
+    setNoteInput(item.notes || "");
+  };
+
+  const handleSaveNote = () => {
+    setOrderItems(
+      orderItems.map((order) =>
+        order.id === noteModalItem.id ? { ...order, notes: noteInput } : order
+      )
+    );
+    setNoteModalItem(null);
+    setNoteInput("");
+  };
 
   // Fetch menu data from API
   useEffect(() => {
@@ -52,11 +73,11 @@ export default function Dashboard() {
 
   // Fungsi tambah ke order list
   const handleAddToOrder = (menu) => {
-    const existingOrder = orderItems.find((order) => order.name === menu.name);
+    const existingOrder = orderItems.find((order) => order.id === menu.id);
     if (existingOrder) {
       setOrderItems(
         orderItems.map((order) =>
-          order.name === menu.name
+          order.id === menu.id
             ? { ...order, quantity: order.quantity + 1 }
             : order
         )
@@ -67,14 +88,14 @@ export default function Dashboard() {
   };
 
   // Fungsi hapus 1 quantity
-  const handleDecreaseOrder = (menu) => {
-    const existingOrder = orderItems.find((order) => order.name === menu.name);
+  const handleDecreaseOrder = async (menu) => {
+    const existingOrder = orderItems.find((order) => order.id === menu.id);
     if (existingOrder.quantity === 1) {
-      setOrderItems(orderItems.filter((order) => order.name !== menu.name));
+      setOrderItems(orderItems.filter((order) => order.id !== menu.id));
     } else {
       setOrderItems(
         orderItems.map((order) =>
-          order.name === menu.name
+          order.id === menu.id
             ? { ...order, quantity: order.quantity - 1 }
             : order
         )
@@ -87,13 +108,73 @@ export default function Dashboard() {
     setOrderItems(orderItems.filter((order) => order.name !== item.name));
   };
 
-  // Hitung subtotal
-  const subtotal = orderItems.reduce((sum, item) => {
-    const price = parseInt(item.price.replace(/\D/g, ""));
-    return sum + price * item.quantity;
-  }, 0);
+  // Submit Order
+  const handleSubmitOrder = async () => {
+    if (orderItems.length === 0 || !customerName || !paymentAmount) {
+      alert(
+        "Please add items to the order, fill customer details, and provide payment."
+      );
+      return;
+    }
 
-  const tax = 5000; // fix 5.000 misal
+    const orderData = {
+      customerName,
+      tableNumber,
+      orderType,
+      items: orderItems.map((item) => ({
+        menuId: item.id,
+        quantity: item.quantity,
+        notes: item.notes || "",
+      })),
+      subtotal,
+      tax,
+      total,
+      paymentAmount,
+      changeAmount,
+      userId: getCurrentUser().id,
+    };
+
+    console.log("Payment Amount:", paymentAmount);
+    console.log("Change Amount:", changeAmount);
+
+    console.log("Data yang akan dikirim ke server:", orderData);
+
+    try {
+      const response = await fetch("http://localhost:5000/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert("Order placed successfully!");
+        // Reset state after successful order
+        setOrderItems([]);
+        setCustomerName("");
+        setTableNumber("");
+        setPaymentAmount(0);
+        setChangeAmount(0);
+      } else {
+        const errorData = await response.json(); // Coba parse body error
+        console.error("Failed to place order:", errorData);
+        alert("Failed to place order.");      }
+    } catch (error) {
+      console.error("Error submitting order:", error);
+  alert("Failed to place order.");
+    }
+  };
+
+  const subtotal = Math.round(
+    orderItems.reduce((sum, item) => {
+      const price = item.price;
+      return sum + price * item.quantity;
+    }, 0)
+  );
+
+  const tax = Math.round(subtotal * 0.1);
   const total = subtotal + tax;
 
   return (
@@ -137,8 +218,8 @@ export default function Dashboard() {
                 <Image
                   src={`http://localhost:5000/${item.image}`}
                   alt={item.name}
-                  layout="fill"
-                  objectFit="cover"
+                  fill
+                  className="object-cover"
                 />
                 <span className="absolute top-1 right-1 bg-[var(--blue1-main)] text-white text-xs px-2 py-1 rounded-3xl">
                   {item.category}
@@ -152,7 +233,12 @@ export default function Dashboard() {
                 <p className="text-[var(--blue1-main)] font-semibold text-sm">
                   {item.price}
                 </p>
-                <button onClick={() => openDetailMenu(item)}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openDetailMenu(item);
+                  }}
+                >
                   <Image
                     src="/assets/icons/maximize.svg"
                     alt="maximize"
@@ -173,10 +259,10 @@ export default function Dashboard() {
         {/* Button Dine In & Take Away */}
         <div className="flex gap-2 mb-4">
           <button
-            onClick={() => setOrderType("dine-in")}
+            onClick={() => setOrderType("dine_in")}
             className={`flex-1 py-4 rounded-lg font-semibold border cursor-pointer
             ${
-              orderType === "dine-in"
+              orderType === "dine_in"
                 ? "bg-blue-500 text-white border-blue-500"
                 : "border-blue-500 text-blue-500 hover:bg-blue-100"
             }
@@ -185,10 +271,10 @@ export default function Dashboard() {
             Dine In
           </button>
           <button
-            onClick={() => setOrderType("take-away")}
+            onClick={() => setOrderType("take_away")}
             className={`flex-1 py-4 rounded-lg font-semibold border cursor-pointer
             ${
-              orderType === "take-away"
+              orderType === "take_away"
                 ? "bg-blue-500 text-white border-blue-500"
                 : "border-blue-500 text-blue-500 hover:bg-blue-100"
             }
@@ -198,17 +284,45 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Input Customer Name */}
-        <div className="mb-4">
-          <label className="mb-2">Customer Name</label>
-          <input
-            type="text"
-            placeholder="Customer Name"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-          />
-        </div>
+        {orderType === "dine_in" ? (
+          <div className="mb-4 flex gap-4">
+            {/* Customer Name */}
+            <div className="w-1/2">
+              <label className="mb-2 block">Customer Name</label>
+              <input
+                type="text"
+                placeholder="Customer Name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+            {/* Table Number */}
+            <div className="w-1/2">
+              <label className="mb-2 block">Table Number</label>
+              <input
+                type="text"
+                placeholder="e.g. 12"
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+          </div>
+        ) : (
+          // If not dine-in, just show Customer Name
+          <div className="mb-4">
+            <label className="mb-2 block">Customer Name</label>
+            <input
+              type="text"
+              placeholder="Customer Name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+          </div>
+        )}
 
         <hr className="w-full border-t border-gray-200 mb-4" />
 
@@ -221,7 +335,7 @@ export default function Dashboard() {
                 {/* Kiri: Gambar + Info */}
                 <div className="flex items-center gap-2">
                   <Image
-                    src={item.image}
+                    src={`http://localhost:5000/${item.image}`}
                     alt={item.name}
                     width={80}
                     height={80}
@@ -230,21 +344,29 @@ export default function Dashboard() {
                   <div>
                     <p className="font-semibold">{item.name}</p>
                     <p className="text-sm text-gray-400">
-                      Rp {item.price.toLocaleString()}
+                      Rp {parseInt(item.price).toLocaleString()}
                     </p>
 
-                    {/* Button Add Notes */}
-                    <button
-                      onClick={() => handleAddNotes(item)}
-                      className="mt-1 text-blue-500 hover:underline flex items-center text-xs gap-1"
-                    >
-                      <Image
-                        src="/assets/icons/edit-2.svg"
-                        alt="Add Notes"
-                        width={12}
-                        height={12}
-                      />
-                    </button>
+                    <div className="flex items-center gap-2 mt-1">
+                      {/* Button Add Notes */}
+                      <button
+                        onClick={() => handleAddNotes(item)}
+                        className=" flex items-center text-xs gap-1 cursor-pointer"
+                      >
+                        <Image
+                          src="/assets/icons/edit-2.svg"
+                          alt="Add Notes"
+                          width={12}
+                          height={12}
+                        />
+                      </button>
+
+                      {item.notes && (
+                        <p className="text-xs italic text-gray-500">
+                          {item.notes}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -295,24 +417,78 @@ export default function Dashboard() {
         {/* Summary */}
         <div className="mt-4">
           {orderItems.length !== 0 && (
-            <div className="bg-[var(--neutral-grey1)] p-6">
-              <div className="flex justify-between font-semibold mb-2">
-                <span>Subtotal</span>
-                <span>Rp {subtotal.toLocaleString()}</span>
+            <div>
+              <div className="bg-[var(--neutral-grey1)] p-6">
+                <div className="flex justify-between font-semibold mb-2">
+                  <span>Subtotal</span>
+                  <span>Rp {subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span>Tax</span>
+                  <span>Rp {tax.toLocaleString()}</span>
+                </div>
+                <hr className="border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span>Rp {total.toLocaleString()}</span>
+                </div>
               </div>
-              <div className="flex justify-between mb-2">
-                <span>Tax</span>
-                <span>Rp {tax.toLocaleString()}</span>
+
+              <div className="mt-4">
+                <h3 className="font-semibold mb-2">Select Nominal</h3>
+                {/* tombol nominal */}
+                {/* <div className="flex gap-2 justify-center mb-2 "> */}
+                  {/* <button
+                    onClick={() => setPaymentAmount(50000 - total)}
+                    className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Rp 50.000
+                  </button>
+                  <button
+                    onClick={() => setPaymentAmount(75000 - total)}
+                    className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Rp 75.000
+                  </button>
+
+                  <button
+                    onClick={() => setPaymentAmount(100000 - total)}
+                    className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Rp 100.000
+                  </button>
+                </div> */}
+                {/* input manual */}
+                <input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => {
+                    setPaymentAmount(Number(e.target.value));
+                    if (Number(e.target.value) >= total) {
+                      setChangeAmount(Number(e.target.value) - total);
+                    } else {
+                      setChangeAmount(0);
+                    }
+                  }}
+                  placeholder="Enter Nominal here..."
+                  className="border border-gray-100 rounded-md px-3 py-2 w-full text-sm text-center"
+                />
               </div>
-              <hr className="border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span>Rp {total.toLocaleString()}</span>
-              </div>
+              {/* Display Change Amount */}
+              {paymentAmount > total && (
+                <div className="mt-2 flex justify-between font-semibold">
+                  <span>Change</span>
+                  <span>Rp {changeAmount.toLocaleString()}</span>
+                </div>
+              )}
             </div>
           )}
+
           {/* Tombol Pay */}
-          <button className="mt-4 w-full bg-[var(--blue1-main)] text-white py-2 rounded-lg text-lg font-semibold hover:bg-blue-600">
+          <button
+            onClick={handleSubmitOrder}
+            className="mt-4 w-full bg-[var(--blue1-main)] text-white py-2 rounded-lg text-lg font-semibold hover:bg-blue-600"
+          >
             Pay
           </button>
         </div>
@@ -337,7 +513,7 @@ export default function Dashboard() {
 
             <div className="relative h-50 w-full mb-2 overflow-hidden rounded">
               <Image
-                src={selectedMenu.image}
+                src={`http://localhost:5000/${selectedMenu.image}`}
                 alt={selectedMenu.name}
                 layout="fill"
                 objectFit="cover"
@@ -353,6 +529,59 @@ export default function Dashboard() {
             <p className="text-[var(--blue1-main)] font-semibold text-sm">
               {selectedMenu.price}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Add Notes */}
+      {noteModalItem && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-[90%] max-w-sm space-y-4 relative">
+            <button
+              onClick={() => setNoteModalItem(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+            >
+              &times;
+            </button>
+
+            <h4 className="text-2xl font-medium">Detail Menu</h4>
+
+            <hr className="border border-[var(--neutral-grey3)] mb-4" />
+
+            <div className="relative h-50 w-full mb-2 overflow-hidden rounded">
+              <Image
+                src={`http://localhost:5000/${noteModalItem.image}`}
+                alt={noteModalItem.name}
+                layout="fill"
+                objectFit="cover"
+              />
+            </div>
+            <p className=" top-1 right-1 bg-[var(--blue1-main)] text-white text-xs px-2 py-1 rounded-3xl">
+              {noteModalItem.category}
+            </p>
+            <h3 className="text-lg font-medium">{noteModalItem.name}</h3>
+            <p className="text-xs font-light text-[var(--neutral-grey5)]">
+              {noteModalItem.description}
+            </p>
+            <p className="text-[var(--blue1-main)] font-semibold text-sm">
+              {noteModalItem.price}
+            </p>
+
+            <hr className="border border-[var(--neutral-grey3)] mb-4" />
+            <h4 className="text-lg font-medium">Add Notes</h4>
+            <textarea
+              value={noteInput}
+              onChange={(e) => setNoteInput(e.target.value)}
+              rows={4}
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-300"
+              placeholder="add notes here..."
+            />
+            <button
+              onClick={handleSaveNote}
+              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 cursor-pointer"
+            >
+              Submit
+            </button>
           </div>
         </div>
       )}

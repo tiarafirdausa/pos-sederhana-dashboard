@@ -16,13 +16,13 @@ exports.login = async (req, res) => {
         const user = rows[0];
 
         if (!user) {
-            return res.status(401).json({ message: 'Login gagal! Username atau password salah.' }); // Pastikan .json() digunakan
+            return res.status(401).json({ message: 'Login gagal! Username atau password salah.' }); 
         }
 
         const passwordIsValid = await bcrypt.compare(password, user.password);
 
         if (!passwordIsValid) {
-            return res.status(401).json({ message: 'Login gagal! Username atau password salah.' }); // Pastikan .json() digunakan
+            return res.status(401).json({ message: 'Login gagal! Username atau password salah.' }); 
         }
 
         const jwtSecret = process.env.JWT_SECRET;
@@ -32,11 +32,11 @@ exports.login = async (req, res) => {
             { expiresIn: '1h' }
         );
 
-        res.status(200).json({ message: `Login ${user.role} berhasil!`, token: token, role: user.role }); // Pastikan .json() digunakan
+        res.status(200).json({ message: `Login ${user.role} berhasil!`, token: token, role: user.role }); 
 
     } catch (error) {
         console.error('Error saat login:', error);
-        res.status(500).json({ message: 'Terjadi kesalahan server.' }); // Pastikan .json() digunakan
+        res.status(500).json({ message: 'Terjadi kesalahan server.' }); 
     }
 };
 
