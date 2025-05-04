@@ -14,7 +14,7 @@ app.use(express.json());
 // Route
 app.use('/menu', menuRoutes);
 app.use('/auth', authRoutes); 
-app.use('/', orderRoutes);
+app.use('/orders', orderRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // Cek koneksi database dan start server

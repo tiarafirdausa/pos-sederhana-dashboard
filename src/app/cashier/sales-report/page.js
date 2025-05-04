@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 const today = new Date().toLocaleDateString("id-ID", {
@@ -9,102 +9,67 @@ const today = new Date().toLocaleDateString("id-ID", {
   year: "numeric",
 });
 
-const data = [
-  {
-    orderNo: "#ORD001",
-    date: "2025-04-17",
-    type: "Online",
-    category: "Food",
-    customer: "John Doe",
-    items: [
-      { name: "Burger", quantity: 2, price: 50000 },
-      { name: "Fries", quantity: 1, price: 20000 },
-    ],
-    paymentReceived: 150000,
-  },
-  {
-    orderNo: "#ORD002",
-    date: "2025-04-17",
-    type: "Offline",
-    category: "Beverage",
-    customer: "Jane Smith",
-    items: [
-      { name: "Coffee", quantity: 1, price: 30000 },
-      { name: "Tea", quantity: 2, price: 15000 },
-    ],
-    paymentReceived: 120000,
-  },
-];
-
-const stats = [
-  { title: "Total Orders", value: "500", icon: "/assets/icons/receipt.svg" },
-  {
-    title: "Total Omzet",
-    value: "Rp 10.000.000",
-    icon: "/assets/icons/wallet-money.svg",
-  },
-  {
-    title: "All Menu Orders",
-    value: "1000",
-    icon: "/assets/icons/document.svg",
-  },
-  {
-    title: "Foods",
-    value: "500",
-    icon: "/assets/icons/reserve.svg",
-    details: [
-      { name: "Gado-gado Spesial", total: 10 },
-      { name: "Ketoprak", total: 5 },
-      { name: "Siomay", total: 3 },
-      { name: "Batagor", total: 2 },
-      { name: "Bakso", total: 2 },
-      { name: "Mie Ayam", total: 2 },
-      { name: "Soto Ayam", total: 1 },
-      { name: "Soto Sapi", total: 0 },
-    ],
-  },
-  {
-    title: "Beverages",
-    value: "300",
-    icon: "/assets/icons/coffee.svg",
-    details: [
-      { name: "Es Teh Manis", total: 20 },
-      { name: "Es Jeruk", total: 15 },
-      { name: "Jus Alpukat", total: 10 },
-      { name: "Jus Mangga", total: 8 },
-      { name: "Kopi Hitam", total: 5 },
-      { name: "Kopi Susu", total: 3 },
-      { name: "Susu Coklat", total: 2 },
-      { name: "Air Mineral", total: 1 },
-    ],
-  },
-  {
-    title: "Desserts",
-    value: "200",
-    icon: "/assets/icons/cake.svg",
-    details: [
-      { name: "Puding Coklat", total: 12 },
-      { name: "Es Krim Vanilla", total: 10 },
-      { name: "Kue Lapis", total: 6 },
-      { name: "Brownies", total: 5 },
-      { name: "Cheesecake", total: 4 },
-      { name: "Donat", total: 3 },
-      { name: "Klepon", total: 2 },
-      { name: "Dadar Gulung", total: 1 },
-    ],
-  },
-];
-
 const itemsPerPage = 5;
+
+// Fungsi untuk memformat mata uang Rupiah
+const formatRupiah = (amount) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+  }).format(amount);
+};
 
 export default function SalesReport() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredData, setFilteredData] = useState(data);
+  const [data, setData] = useState([]); // State untuk menyimpan data transaksi dari API
+  const [loading, setLoading] = useState(true); // State untuk indikator loading
+  const [error, setError] = useState(null); // State untuk menyimpan error jika terjadi
+  const [filteredData, setFilteredData] = useState([]); // Data yang ditampilkan setelah filter/pagination
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [selectedStat, setSelectedStat] = useState(null); // State for selected stat
+  const [selectedStat, setSelectedStat] = useState(null);
+  const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage); // St
 
-  const openStatDetail = (stat) => {
-    setSelectedStat(stat);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("http://localhost:5000/orders");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const responseData = await response.json();
+        setData(responseData.orders);
+        setFilteredData(responseData.orders); // Initialize filtered data
+      } catch (e) {
+        setError(e);
+        console.error("Failed to fetch data:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const openStatDetail = async (category) => {
+    setSelectedStat({ title: category, details: [] }); // Inisialisasi details
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:5000/orders/${category}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const responseData = await response.json();
+      setSelectedStat({ title: category, details: responseData.details }); // Set dengan data yang benar
+    } catch (e) {
+      setError(e);
+      console.error(`Gagal mengambil detail statistik untuk ${category}:`, e);
+      setSelectedStat({ title: category, details: [] });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const closeStatDetail = () => {
@@ -112,7 +77,26 @@ export default function SalesReport() {
   };
 
   const openTransactionDetail = (transaction) => {
-    setSelectedTransaction(transaction);
+    // Format data transaksi untuk modal
+    const formattedTransaction = {
+      orderNo: transaction.no_order,
+      date: new Date(transaction.date).toLocaleDateString("id-ID"),
+      customer: transaction.customer_name,
+      type: transaction.order_type,
+      items: data
+        .filter((item) => item.order_id === transaction.order_id)
+        .map((item) => ({
+          name: item.menu_name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      subTotal: transaction.sub_total,
+      tax: transaction.tax,
+      total: transaction.total,
+      amountReceived: transaction.amount_received,
+      amountChange: transaction.amount_change,
+    };
+    setSelectedTransaction(formattedTransaction);
   };
 
   const closeTransactionDetail = () => {
@@ -138,6 +122,46 @@ export default function SalesReport() {
     }
   };
 
+  const setItemsPerPage = (value) => {
+    setItemsPerPageState(value);
+    setCurrentPage(1);
+  };
+
+  // Calculate stats
+  const totalOrders = data.length;
+  const totalOmzet = data.reduce((sum, order) => sum + order.total, 0);
+
+  const allMenuOrders = data.reduce((sum, order) => {
+    if (order.quantity) {
+      return sum + order.quantity;
+    }
+    return sum;
+  }, 0);
+
+  const foodOrders = data.filter((order) => order.menu_category === "food");
+  const totalFoodOrders = foodOrders.reduce((sum, order) => {
+    if (order.quantity) {
+      return sum + order.quantity;
+    }
+    return sum;
+  }, 0);
+
+  const beverageOrders = data.filter((order) => order.menu_category === "beverage");
+  const totalBeverageOrders = beverageOrders.reduce((sum, order) => {
+    if (order.quantity) {
+      return sum + order.quantity;
+    }
+    return sum;
+  }, 0);
+
+  const dessertOrders = data.filter((order) => order.menu_category === "dessert");
+  const totalDessertOrders = dessertOrders.reduce((sum, order) => {
+    if (order.quantity) {
+      return sum + order.quantity;
+    }
+    return sum;
+  }, 0);
+
   return (
     <div className="space-y-6">
       {/* Header*/}
@@ -148,32 +172,122 @@ export default function SalesReport() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        {stats.map((item) => (
-          <div
-            key={item.title}
-            className="relative bg-white rounded-xl shadow-md p-4 text-left"
-          >
-            {["Foods", "Beverages", "Desserts"].includes(item.title) && (
-              <button
-                onClick={() => openStatDetail(item)}
-                className="absolute bottom-4 right-4"
-              >
-                <Image
-                  src="/assets/icons/export.svg"
-                  alt="detail"
-                  width={18}
-                  height={18}
-                />
-              </button>
-            )}
-
-            <p className="text-sm text-black">{item.title}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <Image src={item.icon} alt={item.title} width={20} height={20} />
-              <p className="text-lg font-medium">{item.value}</p>
-            </div>
+        {/* Total Orders */}
+        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
+          <p className="text-sm text-black">Total Orders</p>
+          <div className="flex items-center gap-2 mt-1">
+            <Image
+              src="/assets/icons/receipt.svg"
+              alt="Total Orders"
+              width={20}
+              height={20}
+            />
+            <p className="text-lg font-medium">{totalOrders}</p>
           </div>
-        ))}
+        </div>
+
+        {/* Total Omzet */}
+        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
+          <p className="text-sm text-black">Total Omzet</p>
+          <div className="flex items-center gap-2 mt-1">
+            <Image
+              src="/assets/icons/wallet-money.svg"
+              alt="Total Omzet"
+              width={20}
+              height={20}
+            />
+            <p className="text-lg font-medium">{formatRupiah(totalOmzet)}</p>
+          </div>
+        </div>
+
+        {/* All Menu Orders */}
+        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
+          <p className="text-sm text-black">All Menu Orders</p>
+          <div className="flex items-center gap-2 mt-1">
+            <Image
+              src="/assets/icons/document.svg"
+              alt="All Menu Orders"
+              width={20}
+              height={20}
+            />
+            <p className="text-lg font-medium">{allMenuOrders}</p>
+          </div>
+        </div>
+
+        {/* Foods */}
+        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
+          <button
+            onClick={() => openStatDetail("food")}
+            className="absolute bottom-4 right-4"
+          >
+            <Image
+              src="/assets/icons/export.svg"
+              alt="detail"
+              width={18}
+              height={18}
+            />
+          </button>
+          <p className="text-sm text-black">Foods</p>
+          <div className="flex items-center gap-2 mt-1">
+            <Image
+              src="/assets/icons/reserve.svg"
+              alt="Foods"
+              width={20}
+              height={20}
+            />
+            <p className="text-lg font-medium">{totalFoodOrders}</p>
+          </div>
+        </div>
+
+        {/* Beverages */}
+        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
+          <button
+            onClick={() => openStatDetail("beverage")}
+            className="absolute bottom-4 right-4"
+          >
+            <Image
+              src="/assets/icons/export.svg"
+              alt="detail"
+              width={18}
+              height={18}
+            />
+          </button>
+          <p className="text-sm text-black">Beverages</p>
+          <div className="flex items-center gap-2 mt-1">
+            <Image
+              src="/assets/icons/coffee.svg"
+              alt="Beverages"
+              width={20}
+              height={20}
+            />
+            <p className="text-lg font-medium">{totalBeverageOrders}</p>
+          </div>
+        </div>
+
+        {/* Desserts */}
+        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
+          <button
+            onClick={() => openStatDetail("dessert")}
+            className="absolute bottom-4 right-4"
+          >
+            <Image
+              src="/assets/icons/export.svg"
+              alt="detail"
+              width={18}
+              height={18}
+            />
+          </button>
+          <p className="text-sm text-black">Desserts</p>
+          <div className="flex items-center gap-2 mt-1">
+            <Image
+              src="/assets/icons/cake.svg"
+              alt="Desserts"
+              width={20}
+              height={20}
+            />
+            <p className="text-lg font-medium">{totalDessertOrders}</p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white shadow-md rounded-lg p-6">
@@ -283,11 +397,13 @@ export default function SalesReport() {
             <tbody className="divide-y divide-gray-100 text-black border-b border-[var(--neutral-grey1)]">
               {currentItems.map((item, index) => (
                 <tr key={index}>
-                  <td className="px-4 py-3">{item.orderNo}</td>
-                  <td className="px-4 py-3">{item.date}</td>
-                  <td className="px-4 py-3">{item.type}</td>
-                  <td className="px-4 py-3">{item.category}</td>
-                  <td className="px-4 py-3">{item.customer}</td>
+                  <td className="px-4 py-3">{item.no_order}</td>
+                  <td className="px-4 py-3">
+                    {new Date(item.date).toLocaleDateString("id-ID")}
+                  </td>
+                  <td className="px-4 py-3">{item.order_type}</td>
+                  <td className="px-4 py-3">{item.menu_category}</td>
+                  <td className="px-4 py-3">{item.customer_name}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => openTransactionDetail(item)}>
                       <Image
@@ -362,7 +478,7 @@ export default function SalesReport() {
         {/* Modal Detail Transaksi */}
         {selectedTransaction && (
           <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
-            <div className="bg-white px-18 py-20 rounded-xl shadow-md w-full max-w-xl space-y-4 relative">
+            <div className="bg-white px-8 py-6 rounded-xl shadow-md w-full max-w-xl space-y-4 relative">
               <button
                 onClick={closeTransactionDetail}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
@@ -377,19 +493,19 @@ export default function SalesReport() {
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
                   <span className="text-[var(--neutral-grey6)] font-light">
                     No Order
-                  </span>{" "}
+                  </span>
                   {selectedTransaction.orderNo}
                 </p>
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
                   <span className="text-[var(--neutral-grey6)] font-light">
                     Date
-                  </span>{" "}
+                  </span>
                   {selectedTransaction.date}
                 </p>
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
                   <span className="text-[var(--neutral-grey6)] font-light">
                     Customer Name
-                  </span>{" "}
+                  </span>
                   {selectedTransaction.customer}
                 </p>
                 <p className="text-sm mb-1">{selectedTransaction.type}</p>
@@ -407,11 +523,11 @@ export default function SalesReport() {
                           {item.name}
                         </span>
                         <span className="text-xs text-[var(--neutral-grey7)]">
-                          {item.quantity} x Rp {item.price}
+                          {item.quantity} x {formatRupiah(item.price)}
                         </span>
                       </div>
                       <span className="text-sm font-medium">
-                        Rp {item.price * item.quantity}
+                        {formatRupiah(item.price * item.quantity)}
                       </span>
                     </li>
                   ))}
@@ -427,13 +543,13 @@ export default function SalesReport() {
                         Sub Total
                       </span>
                       <span className="text-[var(--neutral-grey7)]">
-                        Rp 100.000
+                        {formatRupiah(selectedTransaction.subTotal)}
                       </span>
                     </p>
                     <p className="flex justify-between items-center text-sm mb-2">
                       <span className="text-[var(--neutral-grey5)]">Tax</span>
                       <span className="text-[var(--neutral-grey7)]">
-                        Rp 10.000
+                        {formatRupiah(selectedTransaction.tax)}
                       </span>
                     </p>
 
@@ -441,19 +557,25 @@ export default function SalesReport() {
 
                     <p className="flex justify-between items-center mb-4">
                       <span className="text-lg">Total</span>
-                      <span className="text-xl font-semibold">Rp 110.000</span>
+                      <span className="text-xl font-semibold">
+                        {formatRupiah(selectedTransaction.total)}
+                      </span>
                     </p>
                     <p className="flex justify-between items-center text-sm mb-2">
                       <span className="text-[var(--neutral-grey5)]">
                         Diterima
                       </span>
-                      <span className="text-black">Rp 150.000</span>
+                      <span className="text-black">
+                        {formatRupiah(selectedTransaction.amountReceived)}
+                      </span>
                     </p>
                     <p className="flex justify-between items-center text-sm">
                       <span className="text-[var(--neutral-grey5)]">
                         Kembalian
                       </span>
-                      <span className="text-black">Rp 40.000</span>
+                      <span className="text-black">
+                        {formatRupiah(selectedTransaction.amountChange)}
+                      </span>
                     </p>
                   </>
                 )}
@@ -494,7 +616,7 @@ export default function SalesReport() {
               </div>
 
               {/* Table */}
-              {selectedStat.details ? (
+              {selectedStat.details && selectedStat.details.length > 0 ? (
                 <div className="space-y-2">
                   <table className="w-full text-sm mt-2">
                     <thead className="bg-gray-100">
@@ -504,10 +626,10 @@ export default function SalesReport() {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedStat.details.map((item, idx) => (
+                      {selectedStat.details.map((items, idx) => (
                         <tr key={idx} className="border-b border-gray-100">
-                          <td className="p-3">{item.name}</td>
-                          <td className="p-3">{item.total}</td>
+                          <td className="p-3">{items.name}</td>
+                          <td className="p-3">{items.total}</td>
                         </tr>
                       ))}
                     </tbody>
