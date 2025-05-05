@@ -14,6 +14,14 @@ const categories = [
   { label: "Dessert", value: "dessert", icon: "/assets/icons/cake-gray.svg" },
 ];
 
+
+const formatRupiah = (amount) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+  }).format(amount);
+};
+
 export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [noteModalItem, setNoteModalItem] = useState(null); // item yang sedang ditambahkan catatan
@@ -25,6 +33,8 @@ export default function Dashboard() {
   const [menuItems, setMenuItems] = useState([]); // State untuk menyimpan data menu dari API
   const [tableNumber, setTableNumber] = useState("");
   const [amountReceived, setAmountReceived] = useState(0);
+  const [showReceiptModal, setShowReceiptModal] = useState(false); // state untuk menampilkan modal struk
+  const [orderData, setOrderData] = useState(null);
 
   const handleAddNotes = (item) => {
     setNoteModalItem(item);
@@ -130,12 +140,10 @@ export default function Dashboard() {
       tax,
       total,
       amountReceived,
-      userId:3,
+      userId: 3,
     };
 
     // console.log(userId);
-
-    console.log("Data yang akan dikirim ke server:", orderData);
 
     try {
       const response = await fetch("http://localhost:5000/orders", {
@@ -148,7 +156,9 @@ export default function Dashboard() {
 
       if (response.ok) {
         const result = await response.json();
-        alert("Order placed successfully!");
+        // ("Order placed successfully!");
+        setOrderData(orderData);
+        setShowReceiptModal(true);
         // Reset state after successful order
         setOrderItems([]);
         setCustomerName("");
@@ -568,6 +578,115 @@ export default function Dashboard() {
             >
               Submit
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Modal */}
+      {showReceiptModal && (
+        <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
+          <div className="bg-white px-8 py-6 rounded-xl shadow-md w-full max-w-xl space-y-4 relative">
+            <button
+              onClick={() => setShowReceiptModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+
+            <h2 className="text-3xl text-center font-medium mb-2 mt-2">
+              Transaction Details
+            </h2>
+
+            <div className="bg-[var(--neutral-grey1)] p-4 rounded-md">
+              <p className="text-[var(--neutral-grey7)] text-sm mb-1">
+                <span className="text-[var(--neutral-grey6)] font-light">
+                  No Order
+                </span>
+                {orderData.orderNo}
+              </p>
+              <p className="text-[var(--neutral-grey7)] text-sm mb-1">
+                <span className="text-[var(--neutral-grey6)] font-light">
+                  Date
+                </span>
+                {orderData.date}
+              </p>
+              <p className="text-[var(--neutral-grey7)] text-sm mb-1">
+                <span className="text-[var(--neutral-grey6)] font-light">
+                  Customer Name
+                </span>
+                {orderData.customer}
+              </p>
+              <p className="text-sm mb-1">{orderData.type}</p>
+
+              <hr className=" border-t border-[var(--neutral-grey2)] mb-4" />
+
+              <ul>
+                {orderData.items.map((item, index) => (
+                  <li
+                    key={index}
+                    className="flex justify-between items-center mb-2"
+                  >
+                    <div className="flex flex-col items-start">
+                      <span className="text-2xl font-medium">{item.name}</span>
+                      <span className="text-xs text-[var(--neutral-grey7)]">
+                        {item.quantity} x {formatRupiah(item.price)}
+                      </span>
+                    </div>
+                    <span className="text-sm font-medium">
+                      {formatRupiah(item.price * item.quantity)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <hr className=" border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
+
+              {/* Sub Total, Tax, Total, Kembalian */}
+              {orderData && (
+                <>
+                  <p className="flex justify-between items-center text-sm mb-2">
+                    <span className="text-[var(--neutral-grey5)]">
+                      Sub Total
+                    </span>
+                    <span className="text-[var(--neutral-grey7)]">
+                      {formatRupiah(orderData.subTotal)}
+                    </span>
+                  </p>
+                  <p className="flex justify-between items-center text-sm mb-2">
+                    <span className="text-[var(--neutral-grey5)]">Tax</span>
+                    <span className="text-[var(--neutral-grey7)]">
+                      {formatRupiah(orderData.tax)}
+                    </span>
+                  </p>
+
+                  <hr className="border border-dashed border-[var(--neutral-grey3)] mb-4 mt-4" />
+
+                  <p className="flex justify-between items-center mb-4">
+                    <span className="text-lg">Total</span>
+                    <span className="text-xl font-semibold">
+                      {formatRupiah(orderData.total)}
+                    </span>
+                  </p>
+                  <p className="flex justify-between items-center text-sm mb-2">
+                    <span className="text-[var(--neutral-grey5)]">
+                      Diterima
+                    </span>
+                    <span className="text-black">
+                      {formatRupiah(orderData.amountReceived)}
+                    </span>
+                  </p>
+                  {/* <p className="flex justify-between items-center text-sm">
+                    <span className="text-[var(--neutral-grey5)]">
+                      Kembalian
+                    </span>
+                    <span className="text-black">
+                      {formatRupiah(orderData.amountChange)}
+                    </span>
+                  </p> */}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

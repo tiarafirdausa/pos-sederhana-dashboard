@@ -129,7 +129,8 @@ export default function SalesReport() {
 
   // Calculate stats
   const totalOrders = data.length;
-  const totalOmzet = data.reduce((sum, order) => sum + order.total, 0);
+  const totalOmzet = data.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+  console.log("Total Omzet:", totalOmzet); // Debugging log
 
   const allMenuOrders = data.reduce((sum, order) => {
     if (order.quantity) {
