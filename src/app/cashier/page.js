@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-// import { getCurrentUser } from "@/utils/auth"; // Import fungsi untuk mendapatkan user saat ini
 
 const categories = [
   { label: "All Menu", value: "all" },
@@ -13,7 +12,6 @@ const categories = [
   },
   { label: "Dessert", value: "dessert", icon: "/assets/icons/cake-gray.svg" },
 ];
-
 
 const formatRupiah = (amount) => {
   return new Intl.NumberFormat("id-ID", {
@@ -35,6 +33,10 @@ export default function Dashboard() {
   const [amountReceived, setAmountReceived] = useState(0);
   const [showReceiptModal, setShowReceiptModal] = useState(false); // state untuk menampilkan modal struk
   const [orderData, setOrderData] = useState(null);
+  const [showArchiveModal, setShowArchiveModal] = useState(false); // State untuk menampilkan modal arsip transaksi
+  const [archiveOrders, setArchiveOrders] = useState([]); // State untuk menyimpan data arsip transaksi
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectOrderType, setSelectOrderType] = useState("");
 
   const handleAddNotes = (item) => {
     setNoteModalItem(item);
@@ -67,11 +69,11 @@ export default function Dashboard() {
   }, []);
 
   const openDetailMenu = (menu) => {
-    setSelectedMenu(menu); 
+    setSelectedMenu(menu);
   };
 
   const closeDetailMenu = () => {
-    setSelectedMenu(null); 
+    setSelectedMenu(null);
   };
 
   // Filter berdasarkan kategori
@@ -143,8 +145,6 @@ export default function Dashboard() {
       userId: 3,
     };
 
-    // console.log(userId);
-
     try {
       const response = await fetch("http://localhost:5000/orders", {
         method: "POST",
@@ -156,7 +156,6 @@ export default function Dashboard() {
 
       if (response.ok) {
         const result = await response.json();
-        // ("Order placed successfully!");
         setOrderData(orderData);
         setShowReceiptModal(true);
         setOrderItems([]);
@@ -183,6 +182,41 @@ export default function Dashboard() {
 
   const tax = Math.round(subtotal * 0.1);
   const total = subtotal + tax;
+
+  // Fungsi untuk membuka modal arsip transaksi
+  const openArchiveModal = async () => {
+    setShowArchiveModal(true);
+    try {
+      const response = await fetch("http://localhost:5000/orders");
+      if (response.ok) {
+        const data = await response.json();
+        setArchiveOrders(data.orders);
+      } else {
+        console.error("Failed to fetch archive orders:", response.status);
+        alert("Failed to fetch archive orders.");
+      }
+    } catch (error) {
+      console.error("Error fetching archive orders:", error);
+      alert("Error fetching archive orders.");
+    }
+  };
+
+  // Fungsi untuk menutup modal arsip transaksi
+  const closeArchiveModal = () => {
+    setShowArchiveModal(false);
+    setSearchKeyword("");
+    setSelectOrderType("");
+  };
+
+  // Fungsi untuk memfilter arsip transaksi
+  const filteredArchiveOrders = archiveOrders.filter((order) => {
+    const searchMatch =
+      !searchKeyword ||
+      order.orderNo?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      order.customer?.toLowerCase().includes(searchKeyword.toLowerCase());
+    const typeMatch = !selectOrderType || order.order_type === selectOrderType;
+    return searchMatch && typeMatch;
+  });
 
   return (
     <div className="flex h-screen gap-4">
@@ -262,7 +296,21 @@ export default function Dashboard() {
 
       {/* Right Section (List Order) */}
       <div className="w-1/3 p-5 bg-white rounded-2xl flex flex-col">
-        <h2 className="text-xl font-semibold mb-4">List Order</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">List Order</h2>
+          <button
+            onClick={openArchiveModal}
+            className="py-2 px-4 rounded-md border cursor-pointer border-blue-500 hover:bg-blue-100 text-sm"
+          >
+            <Image
+              src="/assets/icons/archive-add.svg"
+              alt="Archive"
+              width={16}
+              height={16}
+              className="inline-block"
+            />
+          </button>
+        </div>
         {/* Button Dine In & Take Away */}
         <div className="flex gap-2 mb-4">
           <button
@@ -676,6 +724,81 @@ export default function Dashboard() {
                     </span>
                   </p>
                 </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Archive Modal */}
+      {showArchiveModal && (
+        <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-md w-[90%] max-w-lg space-y-4 relative">
+            <button
+              onClick={closeArchiveModal}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+            >
+              &times;
+            </button>
+
+            <h2 className="text-2xl font-semibold mb-4">Order Archive</h2>
+
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Search keyword..."
+                className="w-1/2 border border-gray-300 rounded-md p-2 text-sm"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+              />
+              <select
+                className="w-1/2 border border-gray-300 rounded-md p-2 text-sm"
+                value={selectOrderType}
+                onChange={(e) => setSelectOrderType(e.target.value)}
+              >
+                <option value="">Select order type</option>
+                <option value="dine_in">Dine In</option>
+                <option value="take_away">Take Away</option>
+              </select>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm">
+                Search
+              </button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[400px]">
+              {filteredArchiveOrders.length === 0 ? (
+                <p className="text-gray-500 text-center">
+                  No archived orders found.
+                </p>
+              ) : (
+                filteredArchiveOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="bg-gray-100 rounded-md p-4 mb-2 flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="font-semibold">
+                        No Order: {order.no_order}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Date: {new Date(order.date).toLocaleDateString()}{" "}
+                        {new Date(order.date).toLocaleTimeString()}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Type: {order.order_type}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Customer: {order.customer_name}
+                      </p>
+                      <p className="text-sm text-gray-700 font-medium">
+                        Total: {formatRupiah(order.total)}
+                      </p>
+                    </div>
+                    <button className="bg-green-500 text-white px-3 py-2 rounded-md text-xs">
+                      View Details
+                    </button>
+                  </div>
+                ))
               )}
             </div>
           </div>
