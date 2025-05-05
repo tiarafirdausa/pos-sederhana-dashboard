@@ -89,7 +89,7 @@ export default function Catalog() {
     updateData.append("price", formData.price);
     updateData.append("description", formData.description);
     try {
-      console.log("Submitting form with data:", formData); // Log data yang dikirim
+      console.log("Submitting form with data:", formData);
       const response = await fetch(
         `http://localhost:5000/menu/${selectedMenu.id}`,
         {
@@ -117,7 +117,7 @@ export default function Catalog() {
   // Handle edit menu value
   useEffect(() => {
     if (selectedMenu && isEditMode) {
-      console.log("Loading menu for edit:", selectedMenu); // Log selectedMenu untuk verifikasi
+      console.log("Loading menu for edit:", selectedMenu); 
       setFormData({
         image: null,
         name: selectedMenu.name || "",

@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-// Import komponen dashboard untuk masing-masing role
-import AdminDashboard from "./admin/dashboard/page";
-import CashierDashboard from "./cashier/dashboard/page";
+import AdminDashboard from "./admin/page";
+import CashierDashboard from "./cashier/page";
 
 export default function Page() {
   const [userRole, setUserRole] = useState(null);
@@ -19,17 +17,12 @@ export default function Page() {
 
     // Hanya redirect jika userRole null DAN loading sudah selesai
     if (!storedRole && !loading) {
-      router.push("/auth/login");
+      router.replace("/auth/login");
     }
-  }, [router, loading]); // Tambahkan router dan loading sebagai dependency
+  }, [router, loading]); 
 
   if (loading) {
     return <div>Loading...</div>;
-  }
-
-  if (!userRole) {
-    // Kita tidak perlu redirect di sini lagi karena sudah ditangani di useEffect
-    return null;
   }
 
   if (userRole === "admin") {

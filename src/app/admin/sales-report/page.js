@@ -1,6 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import StatCard from "../../components/statcard";
+import TransactionTable from "../../components/transactionTable";
+import Pagination from "../../components/pagination";
 
 const today = new Date().toLocaleDateString("id-ID", {
   weekday: "long",
@@ -9,68 +12,144 @@ const today = new Date().toLocaleDateString("id-ID", {
   year: "numeric",
 });
 
-const data = [
-  {
-    orderNo: "#ORD001",
-    date: "2025-04-17",
-    type: "Online",
-    category: "Food",
-    customer: "John Doe",
-    items: [
-      { name: "Burger", quantity: 2, price: 50000 },
-      { name: "Fries", quantity: 1, price: 20000 },
-    ],
-    paymentReceived: 150000, 
-  },
-  {
-    orderNo: "#ORD002",
-    date: "2025-04-17",
-    type: "Offline",
-    category: "Beverage",
-    customer: "Jane Smith",
-    items: [
-      { name: "Coffee", quantity: 1, price: 30000 },
-      { name: "Tea", quantity: 2, price: 15000 },
-    ],
-    paymentReceived: 120000,
-  },
+const formatRupiah = (amount) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
 
-];
+    currency: "IDR",
+  }).format(amount);
+};
 
 const itemsPerPage = 5;
 
 export default function SalesReport() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredData, setFilteredData] = useState(data);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [selectedStat, setSelectedStat] = useState(null);
+  const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
 
-  const openDetailModal = (transaction) => {
-    setSelectedTransaction(transaction);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("http://localhost:5000/orders");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const responseData = await response.json();
+        setData(responseData.orders);
+        setFilteredData(responseData.orders);
+      } catch (e) {
+        setError(e);
+        console.error("Failed to fetch data:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const openStatDetail = async (category) => {
+    setSelectedStat({ title: category, details: [] });
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:5000/orders/${category}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const responseData = await response.json();
+      setSelectedStat({ title: category, details: responseData.details });
+    } catch (e) {
+      setError(e);
+      console.error(`Gagal mengambil detail statistik untuk ${category}:`, e);
+      setSelectedStat({ title: category, details: [] });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const closeDetailModal = () => {
+  const closeStatDetail = () => {
+    setSelectedStat(null);
+  };
+
+  const openTransactionDetail = (transaction) => {
+    const formattedTransaction = {
+      orderNo: transaction.no_order,
+      date: new Date(transaction.date).toLocaleDateString("id-ID"),
+      customer: transaction.customer_name,
+      type: transaction.order_type,
+      items: data
+        .filter((item) => item.order_id === transaction.order_id)
+        .map((item) => ({
+          name: item.menu_name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      subTotal: transaction.sub_total,
+      tax: transaction.tax,
+      total: transaction.total,
+      amountReceived: transaction.amount_received,
+      amountChange: transaction.amount_change,
+    };
+    setSelectedTransaction(formattedTransaction);
+  };
+
+  const closeTransactionDetail = () => {
     setSelectedTransaction(null);
   };
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const totalPages = Math.ceil(filteredData.length / itemsPerPageState);
+  const startIndex = (currentPage - 1) * itemsPerPageState;
   const currentItems = filteredData.slice(
     startIndex,
-    startIndex + itemsPerPage
+    startIndex + itemsPerPageState
   );
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const setItemsPerPage = (value) => {
+    setItemsPerPageState(value);
+    setCurrentPage(1);
   };
 
+  // Calculate stats
+  const totalOrders = data.length;
+  const totalOmzet = data.reduce(
+    (sum, order) => sum + (parseFloat(order.total) || 0),
+    0
+  );
+  const allMenuOrders = data.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
+  const foodOrders = data.filter((order) => order.menu_category === "food");
+  const totalFoodOrders = foodOrders.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
+  const beverageOrders = data.filter(
+    (order) => order.menu_category === "beverage"
+  );
+  const totalBeverageOrders = beverageOrders.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
+  const dessertOrders = data.filter(
+    (order) => order.menu_category === "dessert"
+  );
+  const totalDessertOrders = dessertOrders.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -80,12 +159,52 @@ export default function SalesReport() {
         <p className="text-sm text-[var(--neutral-grey7)]">{today}</p>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <StatCard
+          title="Total Orders"
+          value={totalOrders}
+          iconSrc="/assets/icons/receipt.svg"
+        />
+        <StatCard
+          title="Total Omzet"
+          value={totalOmzet}
+          iconSrc="/assets/icons/wallet-money.svg"
+        />
+        <StatCard
+          title="All Menu Orders"
+          value={allMenuOrders}
+          iconSrc="/assets/icons/document.svg"
+        />
+        <StatCard
+          title="Foods"
+          value={totalFoodOrders}
+          iconSrc="/assets/icons/reserve.svg"
+          detailOnClick={() => openStatDetail("food")}
+        />
+        <StatCard
+          title="Beverages"
+          value={totalBeverageOrders}
+          iconSrc="/assets/icons/coffee.svg"
+          detailOnClick={() => openStatDetail("beverage")}
+        />
+        <StatCard
+          title="Desserts"
+          value={totalDessertOrders}
+          iconSrc="/assets/icons/cake.svg"
+          detailOnClick={() => openStatDetail("dessert")}
+        />
+      </div>
+
       <div className="bg-white shadow-md rounded-lg p-6">
         {/* Filter Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="start-date" className="text-sm text-[var(--neutral-grey7)]">
+              <label
+                htmlFor="start-date"
+                className="text-sm text-[var(--neutral-grey7)]"
+              >
                 Start
               </label>
               <input
@@ -95,7 +214,10 @@ export default function SalesReport() {
               />
             </div>
             <div>
-              <label htmlFor="finish-date" className="text-sm text-[var(--neutral-grey7)]">
+              <label
+                htmlFor="finish-date"
+                className="text-sm text-[var(--neutral-grey7)]"
+              >
                 Finish
               </label>
               <input
@@ -108,7 +230,10 @@ export default function SalesReport() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label htmlFor="category" className="text-sm text-[var(--neutral-grey7)]">
+              <label
+                htmlFor="category"
+                className="text-sm text-[var(--neutral-grey7)]"
+              >
                 Category
               </label>
               <select
@@ -126,7 +251,10 @@ export default function SalesReport() {
             </div>
 
             <div>
-              <label htmlFor="type" className="text-sm text-[var(--neutral-grey7)]">
+              <label
+                htmlFor="type"
+                className="text-sm text-[var(--neutral-grey7)]"
+              >
                 Order Type
               </label>
               <select
@@ -160,41 +288,10 @@ export default function SalesReport() {
         </div>
 
         {/* Tabel Section */}
-        <div className="overflow-x-auto bg-white rounded-t mt-6">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-[var(--neutral-grey1)] border-0 text-left text-black font-medium">
-              <tr>
-                <th className="px-4 py-3">No Order</th>
-                <th className="px-4 py-3">Order Date</th>
-                <th className="px-4 py-3">Order Type</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Customer Name</th>
-                <th className="px-4 py-3">Detail</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-black border-b border-[var(--neutral-grey1)]">
-              {currentItems.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-4 py-3">{item.orderNo}</td>
-                  <td className="px-4 py-3">{item.date}</td>
-                  <td className="px-4 py-3">{item.type}</td>
-                  <td className="px-4 py-3">{item.category}</td>
-                  <td className="px-4 py-3">{item.customer}</td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => openDetailModal(item)}>
-                      <Image
-                        src="/assets/icons/export.svg"
-                        alt="detail"
-                        width={18}
-                        height={18}
-                      />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TransactionTable
+          data={currentItems}
+          openTransactionDetail={openTransactionDetail}
+        />
 
         {/* Pagination*/}
         <div className="flex justify-between items-center mt-4">
@@ -203,7 +300,7 @@ export default function SalesReport() {
             <span className="text-sm text-[var(--neutral-grey7)]">Show:</span>
             <select
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              value={itemsPerPage}
+              value={itemsPerPageState}
               className="border border-[var(--neutral-grey2)] rounded-md p-2 text-sm"
             >
               <option value={5}>5</option>
@@ -215,48 +312,19 @@ export default function SalesReport() {
           </div>
 
           {/* Pagination Controls */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)] rounded-2xl"
-            >
-              &lt;
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex space-x-2">
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentPage(index + 1)}
-                  className={`px-4 py-2 text-sm rounded-2xl ${
-                    currentPage === index + 1
-                      ? "bg-[var(--blue1-main)] text-white"
-                      : "bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)]"
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)] rounded-2xl"
-            >
-              &gt;
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
 
         {/* Modal Detail Transaksi */}
         {selectedTransaction && (
           <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
-            <div className="bg-white px-18 py-20 rounded-xl shadow-md w-full max-w-xl space-y-4 relative">
+            <div className="bg-white px-8 py-6 rounded-xl shadow-md w-full max-w-xl space-y-4 relative">
               <button
-                onClick={closeDetailModal}
+                onClick={closeTransactionDetail}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
                 aria-label="Close"
               >
@@ -269,19 +337,19 @@ export default function SalesReport() {
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
                   <span className="text-[var(--neutral-grey6)] font-light">
                     No Order
-                  </span>{" "}
+                  </span>
                   {selectedTransaction.orderNo}
                 </p>
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
                   <span className="text-[var(--neutral-grey6)] font-light">
                     Date
-                  </span>{" "}
+                  </span>
                   {selectedTransaction.date}
                 </p>
                 <p className="text-[var(--neutral-grey7)] text-sm mb-1">
                   <span className="text-[var(--neutral-grey6)] font-light">
                     Customer Name
-                  </span>{" "}
+                  </span>
                   {selectedTransaction.customer}
                 </p>
                 <p className="text-sm mb-1">{selectedTransaction.type}</p>
@@ -299,11 +367,11 @@ export default function SalesReport() {
                           {item.name}
                         </span>
                         <span className="text-xs text-[var(--neutral-grey7)]">
-                          {item.quantity} x Rp {item.price}
+                          {item.quantity} x {formatRupiah(item.price)}
                         </span>
                       </div>
                       <span className="text-sm font-medium">
-                        Rp {item.price * item.quantity}
+                        {formatRupiah(item.price * item.quantity)}
                       </span>
                     </li>
                   ))}
@@ -319,13 +387,13 @@ export default function SalesReport() {
                         Sub Total
                       </span>
                       <span className="text-[var(--neutral-grey7)]">
-                        Rp 100.000
+                        {formatRupiah(selectedTransaction.subTotal)}
                       </span>
                     </p>
                     <p className="flex justify-between items-center text-sm mb-2">
                       <span className="text-[var(--neutral-grey5)]">Tax</span>
                       <span className="text-[var(--neutral-grey7)]">
-                        Rp 10.000
+                        {formatRupiah(selectedTransaction.tax)}
                       </span>
                     </p>
 
@@ -333,23 +401,89 @@ export default function SalesReport() {
 
                     <p className="flex justify-between items-center mb-4">
                       <span className="text-lg">Total</span>
-                      <span className="text-xl font-semibold">Rp 110.000</span>
+                      <span className="text-xl font-semibold">
+                        {formatRupiah(selectedTransaction.total)}
+                      </span>
                     </p>
                     <p className="flex justify-between items-center text-sm mb-2">
                       <span className="text-[var(--neutral-grey5)]">
                         Diterima
                       </span>
-                      <span className="text-black">Rp 150.000</span>
+                      <span className="text-black">
+                        {formatRupiah(selectedTransaction.amountReceived)}
+                      </span>
                     </p>
                     <p className="flex justify-between items-center text-sm">
                       <span className="text-[var(--neutral-grey5)]">
                         Kembalian
                       </span>
-                      <span className="text-black">Rp 40.000</span>
+                      <span className="text-black">
+                        {formatRupiah(selectedTransaction.amountChange)}
+                      </span>
                     </p>
                   </>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Detail Stat */}
+        {selectedStat && (
+          <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-md w-[90%] max-w-md space-y-4 relative">
+              {/* Close Button */}
+              <button
+                onClick={closeStatDetail}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+
+              <h4 className="text-2xl font-medium">{selectedStat.title}</h4>
+
+              {/* Search Input */}
+              <div className="relative w-full mb-4">
+                <Image
+                  src="/assets/icons/search-normal.svg"
+                  alt="Search Icon"
+                  width={16}
+                  height={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                />
+                <input
+                  type="text"
+                  placeholder="Enter the keyword here..."
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--neutral-grey2)] focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm font-light text-[var(--neutral-grey3)]"
+                />
+              </div>
+
+              {/* Table */}
+              {selectedStat.details && selectedStat.details.length > 0 ? (
+                <div className="space-y-2">
+                  <table className="w-full text-sm mt-2">
+                    <thead className="bg-gray-100">
+                      <tr className="text-left font-medium">
+                        <th className="p-3">Menu Name</th>
+                        <th className="p-3">Total Sales</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedStat.details.map((items, idx) => (
+                        <tr key={idx} className="border-b border-gray-100">
+                          <td className="p-3">{items.name}</td>
+                          <td className="p-3">{items.total}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Tidak ada data yang tersedia.
+                </p>
+              )}
             </div>
           </div>
         )}

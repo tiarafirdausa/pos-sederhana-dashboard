@@ -45,7 +45,7 @@ export default function Login() {
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("userRole", data.role);
         console.log(`Login ${data.role} berhasil:`, data);
-        router.push(`/${data.role}/dashboard`);
+        router.push(`/${data.role}`);
       }
     } catch (error) {
       setError("Terjadi kesalahan saat menghubungi server.");

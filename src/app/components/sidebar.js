@@ -13,19 +13,19 @@ export default function Sidebar() {
     setUserRole(storedRole);
   }, []);
 
-  if (!userRole) return null; // Jangan render sidebar kalau belum tau role
+  if (!userRole) return null; 
 
   const menus = {
     admin: [
-      { name: "Dashboard", path: "/admin/dashboard", icon: "/assets/icons/element-3.svg" },
+      { name: "Dashboard", path: "/admin", icon: "/assets/icons/element-3.svg" },
       { name: "Catalog", path: "/admin/catalog", icon: "/assets/icons/menu-board.svg" },
       { name: "Sales Report", path: "/admin/sales-report", icon: "/assets/icons/clipboard-text.svg" },
-      { name: "Settings", path: "/admin/settings", icon: "/assets/icons/setting-2.svg" },
+      { name: "Settings", path: "/settings", icon: "/assets/icons/setting-2.svg" },
     ],
     cashier: [
-      { name: "Cashier", path: "/cashier/dashboard", icon: "/assets/icons/shop.svg" },
+      { name: "Cashier", path: "/cashier", icon: "/assets/icons/shop.svg" },
       { name: "Sales Report", path: "/cashier/sales-report", icon: "/assets/icons/clipboard-text.svg" },
-      { name: "Settings", path: "/cashier/settings", icon: "/assets/icons/setting-2.svg" },
+      { name: "Settings", path: "/settings", icon: "/assets/icons/setting-2.svg" },
     ],
   };
 

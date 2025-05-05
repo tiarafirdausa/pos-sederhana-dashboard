@@ -67,11 +67,11 @@ export default function Dashboard() {
   }, []);
 
   const openDetailMenu = (menu) => {
-    setSelectedMenu(menu); // Menyimpan menu yang dipilih
+    setSelectedMenu(menu); 
   };
 
   const closeDetailMenu = () => {
-    setSelectedMenu(null); // Menutup detail menu
+    setSelectedMenu(null); 
   };
 
   // Filter berdasarkan kategori
@@ -159,13 +159,12 @@ export default function Dashboard() {
         // ("Order placed successfully!");
         setOrderData(orderData);
         setShowReceiptModal(true);
-        // Reset state after successful order
         setOrderItems([]);
         setCustomerName("");
         setTableNumber("");
         setAmountReceived(0);
       } else {
-        const errorData = await response.json(); // Coba parse body error
+        const errorData = await response.json();
         console.error("Failed to place order:", errorData);
         alert("Failed to place order.");
       }
@@ -676,14 +675,6 @@ export default function Dashboard() {
                       {formatRupiah(orderData.amountReceived)}
                     </span>
                   </p>
-                  {/* <p className="flex justify-between items-center text-sm">
-                    <span className="text-[var(--neutral-grey5)]">
-                      Kembalian
-                    </span>
-                    <span className="text-black">
-                      {formatRupiah(orderData.amountChange)}
-                    </span>
-                  </p> */}
                 </>
               )}
             </div>

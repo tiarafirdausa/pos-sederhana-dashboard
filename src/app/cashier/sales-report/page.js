@@ -1,6 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import StatCard from "../../components/statcard";
+import TransactionTable from "../../components/transactionTable";
+import Pagination from "../../components/pagination";
 
 const today = new Date().toLocaleDateString("id-ID", {
   weekday: "long",
@@ -9,25 +12,25 @@ const today = new Date().toLocaleDateString("id-ID", {
   year: "numeric",
 });
 
-const itemsPerPage = 5;
-
-// Fungsi untuk memformat mata uang Rupiah
 const formatRupiah = (amount) => {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
+
     currency: "IDR",
   }).format(amount);
 };
 
+const itemsPerPage = 5;
+
 export default function SalesReport() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [data, setData] = useState([]); // State untuk menyimpan data transaksi dari API
-  const [loading, setLoading] = useState(true); // State untuk indikator loading
-  const [error, setError] = useState(null); // State untuk menyimpan error jika terjadi
-  const [filteredData, setFilteredData] = useState([]); // Data yang ditampilkan setelah filter/pagination
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [selectedStat, setSelectedStat] = useState(null);
-  const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage); // St
+  const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,7 +43,7 @@ export default function SalesReport() {
         }
         const responseData = await response.json();
         setData(responseData.orders);
-        setFilteredData(responseData.orders); // Initialize filtered data
+        setFilteredData(responseData.orders);
       } catch (e) {
         setError(e);
         console.error("Failed to fetch data:", e);
@@ -53,7 +56,7 @@ export default function SalesReport() {
   }, []);
 
   const openStatDetail = async (category) => {
-    setSelectedStat({ title: category, details: [] }); // Inisialisasi details
+    setSelectedStat({ title: category, details: [] });
     setLoading(true);
     setError(null);
     try {
@@ -62,7 +65,7 @@ export default function SalesReport() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const responseData = await response.json();
-      setSelectedStat({ title: category, details: responseData.details }); // Set dengan data yang benar
+      setSelectedStat({ title: category, details: responseData.details });
     } catch (e) {
       setError(e);
       console.error(`Gagal mengambil detail statistik untuk ${category}:`, e);
@@ -77,7 +80,6 @@ export default function SalesReport() {
   };
 
   const openTransactionDetail = (transaction) => {
-    // Format data transaksi untuk modal
     const formattedTransaction = {
       orderNo: transaction.no_order,
       date: new Date(transaction.date).toLocaleDateString("id-ID"),
@@ -103,23 +105,15 @@ export default function SalesReport() {
     setSelectedTransaction(null);
   };
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const totalPages = Math.ceil(filteredData.length / itemsPerPageState);
+  const startIndex = (currentPage - 1) * itemsPerPageState;
   const currentItems = filteredData.slice(
     startIndex,
-    startIndex + itemsPerPage
+    startIndex + itemsPerPageState
   );
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
 
   const setItemsPerPage = (value) => {
@@ -129,39 +123,33 @@ export default function SalesReport() {
 
   // Calculate stats
   const totalOrders = data.length;
-  const totalOmzet = data.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
-  console.log("Total Omzet:", totalOmzet); // Debugging log
-
-  const allMenuOrders = data.reduce((sum, order) => {
-    if (order.quantity) {
-      return sum + order.quantity;
-    }
-    return sum;
-  }, 0);
-
+  const totalOmzet = data.reduce(
+    (sum, order) => sum + (parseFloat(order.total) || 0),
+    0
+  );
+  const allMenuOrders = data.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
   const foodOrders = data.filter((order) => order.menu_category === "food");
-  const totalFoodOrders = foodOrders.reduce((sum, order) => {
-    if (order.quantity) {
-      return sum + order.quantity;
-    }
-    return sum;
-  }, 0);
-
-  const beverageOrders = data.filter((order) => order.menu_category === "beverage");
-  const totalBeverageOrders = beverageOrders.reduce((sum, order) => {
-    if (order.quantity) {
-      return sum + order.quantity;
-    }
-    return sum;
-  }, 0);
-
-  const dessertOrders = data.filter((order) => order.menu_category === "dessert");
-  const totalDessertOrders = dessertOrders.reduce((sum, order) => {
-    if (order.quantity) {
-      return sum + order.quantity;
-    }
-    return sum;
-  }, 0);
+  const totalFoodOrders = foodOrders.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
+  const beverageOrders = data.filter(
+    (order) => order.menu_category === "beverage"
+  );
+  const totalBeverageOrders = beverageOrders.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
+  const dessertOrders = data.filter(
+    (order) => order.menu_category === "dessert"
+  );
+  const totalDessertOrders = dessertOrders.reduce(
+    (sum, order) => (order.quantity ? sum + order.quantity : sum),
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -173,122 +161,39 @@ export default function SalesReport() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        {/* Total Orders */}
-        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
-          <p className="text-sm text-black">Total Orders</p>
-          <div className="flex items-center gap-2 mt-1">
-            <Image
-              src="/assets/icons/receipt.svg"
-              alt="Total Orders"
-              width={20}
-              height={20}
-            />
-            <p className="text-lg font-medium">{totalOrders}</p>
-          </div>
-        </div>
-
-        {/* Total Omzet */}
-        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
-          <p className="text-sm text-black">Total Omzet</p>
-          <div className="flex items-center gap-2 mt-1">
-            <Image
-              src="/assets/icons/wallet-money.svg"
-              alt="Total Omzet"
-              width={20}
-              height={20}
-            />
-            <p className="text-lg font-medium">{formatRupiah(totalOmzet)}</p>
-          </div>
-        </div>
-
-        {/* All Menu Orders */}
-        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
-          <p className="text-sm text-black">All Menu Orders</p>
-          <div className="flex items-center gap-2 mt-1">
-            <Image
-              src="/assets/icons/document.svg"
-              alt="All Menu Orders"
-              width={20}
-              height={20}
-            />
-            <p className="text-lg font-medium">{allMenuOrders}</p>
-          </div>
-        </div>
-
-        {/* Foods */}
-        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
-          <button
-            onClick={() => openStatDetail("food")}
-            className="absolute bottom-4 right-4"
-          >
-            <Image
-              src="/assets/icons/export.svg"
-              alt="detail"
-              width={18}
-              height={18}
-            />
-          </button>
-          <p className="text-sm text-black">Foods</p>
-          <div className="flex items-center gap-2 mt-1">
-            <Image
-              src="/assets/icons/reserve.svg"
-              alt="Foods"
-              width={20}
-              height={20}
-            />
-            <p className="text-lg font-medium">{totalFoodOrders}</p>
-          </div>
-        </div>
-
-        {/* Beverages */}
-        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
-          <button
-            onClick={() => openStatDetail("beverage")}
-            className="absolute bottom-4 right-4"
-          >
-            <Image
-              src="/assets/icons/export.svg"
-              alt="detail"
-              width={18}
-              height={18}
-            />
-          </button>
-          <p className="text-sm text-black">Beverages</p>
-          <div className="flex items-center gap-2 mt-1">
-            <Image
-              src="/assets/icons/coffee.svg"
-              alt="Beverages"
-              width={20}
-              height={20}
-            />
-            <p className="text-lg font-medium">{totalBeverageOrders}</p>
-          </div>
-        </div>
-
-        {/* Desserts */}
-        <div className="relative bg-white rounded-xl shadow-md p-4 text-left">
-          <button
-            onClick={() => openStatDetail("dessert")}
-            className="absolute bottom-4 right-4"
-          >
-            <Image
-              src="/assets/icons/export.svg"
-              alt="detail"
-              width={18}
-              height={18}
-            />
-          </button>
-          <p className="text-sm text-black">Desserts</p>
-          <div className="flex items-center gap-2 mt-1">
-            <Image
-              src="/assets/icons/cake.svg"
-              alt="Desserts"
-              width={20}
-              height={20}
-            />
-            <p className="text-lg font-medium">{totalDessertOrders}</p>
-          </div>
-        </div>
+        <StatCard
+          title="Total Orders"
+          value={totalOrders}
+          iconSrc="/assets/icons/receipt.svg"
+        />
+        <StatCard
+          title="Total Omzet"
+          value={totalOmzet}
+          iconSrc="/assets/icons/wallet-money.svg"
+        />
+        <StatCard
+          title="All Menu Orders"
+          value={allMenuOrders}
+          iconSrc="/assets/icons/document.svg"
+        />
+        <StatCard
+          title="Foods"
+          value={totalFoodOrders}
+          iconSrc="/assets/icons/reserve.svg"
+          detailOnClick={() => openStatDetail("food")}
+        />
+        <StatCard
+          title="Beverages"
+          value={totalBeverageOrders}
+          iconSrc="/assets/icons/coffee.svg"
+          detailOnClick={() => openStatDetail("beverage")}
+        />
+        <StatCard
+          title="Desserts"
+          value={totalDessertOrders}
+          iconSrc="/assets/icons/cake.svg"
+          detailOnClick={() => openStatDetail("dessert")}
+        />
       </div>
 
       <div className="bg-white shadow-md rounded-lg p-6">
@@ -383,43 +288,10 @@ export default function SalesReport() {
         </div>
 
         {/* Tabel Section */}
-        <div className="overflow-x-auto bg-white rounded-t mt-6">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-[var(--neutral-grey1)] border-0 text-left text-black font-medium">
-              <tr>
-                <th className="px-4 py-3">No Order</th>
-                <th className="px-4 py-3">Order Date</th>
-                <th className="px-4 py-3">Order Type</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Customer Name</th>
-                <th className="px-4 py-3">Detail</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-black border-b border-[var(--neutral-grey1)]">
-              {currentItems.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-4 py-3">{item.no_order}</td>
-                  <td className="px-4 py-3">
-                    {new Date(item.date).toLocaleDateString("id-ID")}
-                  </td>
-                  <td className="px-4 py-3">{item.order_type}</td>
-                  <td className="px-4 py-3">{item.menu_category}</td>
-                  <td className="px-4 py-3">{item.customer_name}</td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => openTransactionDetail(item)}>
-                      <Image
-                        src="/assets/icons/export.svg"
-                        alt="detail"
-                        width={18}
-                        height={18}
-                      />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TransactionTable
+          data={currentItems}
+          openTransactionDetail={openTransactionDetail}
+        />
 
         {/* Pagination*/}
         <div className="flex justify-between items-center mt-4">
@@ -428,7 +300,7 @@ export default function SalesReport() {
             <span className="text-sm text-[var(--neutral-grey7)]">Show:</span>
             <select
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              value={itemsPerPage}
+              value={itemsPerPageState}
               className="border border-[var(--neutral-grey2)] rounded-md p-2 text-sm"
             >
               <option value={5}>5</option>
@@ -440,40 +312,11 @@ export default function SalesReport() {
           </div>
 
           {/* Pagination Controls */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)] rounded-2xl"
-            >
-              &lt;
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex space-x-2">
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentPage(index + 1)}
-                  className={`px-4 py-2 text-sm rounded-2xl ${
-                    currentPage === index + 1
-                      ? "bg-[var(--blue1-main)] text-white"
-                      : "bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)]"
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-[var(--neutral-grey2)] text-[var(--neutral-grey4)] rounded-2xl"
-            >
-              &gt;
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
 
         {/* Modal Detail Transaksi */}

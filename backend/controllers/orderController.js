@@ -93,7 +93,7 @@ exports.createOrder = async (req, res) => {
     // 3. Insert ke tabel transactions
     const transactionDate = new Date();
     const amountChange = amountReceived - total;
-    const transactionStatus = "success"; // Asumsi transaksi selalu sukses jika sampai sini
+    const transactionStatus = "success"; 
 
     const [transactionResult] = await connection.execute(
       "INSERT INTO transaction (order_id, amount_change, amount_received, transaction_status, transaction_date) VALUES (?, ?, ?, ?, ?)",
