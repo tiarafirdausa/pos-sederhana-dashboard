@@ -20,7 +20,7 @@ const formatRupiah = (amount) => {
   }).format(amount);
 };
 
-const itemsPerPage = 5;
+const itemsPerPage = 15;
 
 export default function SalesReport() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -151,6 +151,26 @@ export default function SalesReport() {
     0
   );
 
+  // Filter function
+  const handleFilter = ({ startDate, endDate, categoryFilter, typeFilter }) => {
+    const filtered = data.filter((order) => {
+      const orderDate = new Date(order.date).toISOString().slice(0, 10);
+
+      const dateCondition =
+        (!startDate || orderDate >= startDate) &&
+        (!endDate || orderDate <= endDate);
+
+      const categoryCondition =
+        !categoryFilter || order.menu_category === categoryFilter;
+
+      const typeCondition = !typeFilter || order.order_type === typeFilter;
+
+      return dateCondition && categoryCondition && typeCondition;
+    });
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header*/}
@@ -197,100 +217,11 @@ export default function SalesReport() {
       </div>
 
       <div className="bg-white shadow-md rounded-lg p-6">
-        {/* Filter Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="start-date"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Start
-              </label>
-              <input
-                type="date"
-                id="start-date"
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="finish-date"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Finish
-              </label>
-              <input
-                type="date"
-                id="finish-date"
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label
-                htmlFor="category"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Category
-              </label>
-              <select
-                id="category"
-                defaultValue=""
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              >
-                <option value="" disabled>
-                  Select Category
-                </option>
-                <option value="food">Food</option>
-                <option value="beverage">Beverage</option>
-                <option value="dessert">Dessert</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="type"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Order Type
-              </label>
-              <select
-                id="type"
-                defaultValue=""
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              >
-                <option value="" disabled>
-                  Select Order Type
-                </option>
-                <option value="dinein">Dine In</option>
-                <option value="takeaway">Take Away</option>
-                <option value="delivery">Delivery</option>
-              </select>
-            </div>
-
-            <div className="flex items-end gap-2">
-              <button className="w-full h-10 bg-[var(--blue1-main)] text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                Search
-              </button>
-              <button className="w-10 h-10 border border-[var(--neutral-grey5)] rounded-md hover:bg-gray-300 transition flex justify-center items-center">
-                <Image
-                  src="/assets/icons/frame.svg"
-                  alt="export"
-                  width={18}
-                  height={18}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabel Section */}
+        {/* Transaction Table dengan Filter */}
         <TransactionTable
           data={currentItems}
           openTransactionDetail={openTransactionDetail}
+          onFilter={handleFilter} 
         />
 
         {/* Pagination*/}
