@@ -5,26 +5,35 @@ import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const router = useRouter();
-  const [userRole, setUserRole] = useState("");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const role = localStorage.getItem("userRole");
-    setUserRole(role);
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/auth/me", {
+          credentials: "include", 
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data); 
+        } else {
+          router.push("/auth/login");
+        }
+      } catch (error) {
+        console.error("Gagal ambil data user:", error);
+        router.push("/auth/login");
+      }
+    };
+
+    fetchUser();
   }, []);
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("authToken");
-
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userRole");
-
     try {
-      const response = await fetch("http://localhost:5000/auth/logout", {
+      await fetch("http://localhost:5000/auth/logout", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        credentials: "include", 
       });
 
       router.push("/auth/login");
@@ -35,7 +44,7 @@ export default function Navbar() {
   };
 
   const getDisplayName = () => {
-    switch (userRole) {
+    switch (user?.role) {
       case "admin":
         return "Admin";
       case "cashier":
@@ -73,7 +82,7 @@ export default function Navbar() {
           className="rounded-full object-cover"
         />
         <div className="text-left">
-          <p className="text-sm font-medium text-black">John Doe</p>
+          <p className="text-sm font-medium text-black">{user?.username || "Loading..."}</p>
           <p className="text-xs text-[var(--neutral-grey6)]">{getDisplayName()}</p>
         </div>
         <button

@@ -17,6 +17,13 @@ export default function Login() {
     setLoading(true);
     setError("");
 
+    // Validasi input
+    if (!username || !password) {
+      setError("Username dan Password harus diisi.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
@@ -24,6 +31,7 @@ export default function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        credentials: "include", // Pastikan cookie dikirim
       });
 
       const contentType = response.headers.get("content-type");
@@ -42,8 +50,7 @@ export default function Login() {
         }
       } else {
         const data = await response.json();
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("userRole", data.role);
+        // Menggunakan cookie untuk autentikasi (tidak perlu localStorage)
         console.log(`Login ${data.role} berhasil:`, data);
         router.push(`/${data.role}`);
       }
@@ -65,7 +72,7 @@ export default function Login() {
         className="z-0"
       />
       <div className="absolute inset-0 z-10" />
-      <div className="absolute inset-0 z-20 flex items-center justify-start px-50">
+      <div className="absolute inset-0 z-20 flex items-center justify-center px-6">
         <div className="bg-white rounded-2xl shadow-xl p-10 w-[400px] max-w-full">
           <div className="flex flex-col items-center justify-center gap-2 mb-6">
             <Image

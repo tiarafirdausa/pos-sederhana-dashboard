@@ -557,7 +557,6 @@ export default function Catalog() {
                 name="category"
                 value={formData.category}
                 onChange={handleFormChange}
-                defaultValue=""
                 className="w-full border rounded-md mt-1 p-3 border-gray-200 text-gray-300 cursor-pointer"
               >
                 <option value="" disabled>

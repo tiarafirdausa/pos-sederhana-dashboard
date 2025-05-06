@@ -491,34 +491,17 @@ export default function Dashboard() {
 
               <div className="mt-4">
                 <h3 className="font-semibold mb-2">Select Nominal</h3>
-                {/* tombol nominal */}
-                {/* <div className="flex gap-2 justify-center mb-2 "> */}
-                {/* <button
-                    onClick={() => setPaymentAmount(50000 - total)}
-                    className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-100"
-                  >
-                    Rp 50.000
-                  </button>
-                  <button
-                    onClick={() => setPaymentAmount(75000 - total)}
-                    className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-100"
-                  >
-                    Rp 75.000
-                  </button>
-
-                  <button
-                    onClick={() => setPaymentAmount(100000 - total)}
-                    className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-100"
-                  >
-                    Rp 100.000
-                  </button>
-                </div> */}
                 {/* input manual */}
                 <input
                   type="number"
-                  value={amountReceived}
+                  value={amountReceived === null ? "" : amountReceived} 
                   onChange={(e) => {
-                    setAmountReceived(Number(e.target.value));
+                    const inputValue = e.target.value;
+                    if (inputValue === "") {
+                      setAmountReceived(null);
+                    } else {
+                      setAmountReceived(Number(inputValue));
+                    }
                   }}
                   placeholder="Enter Nominal here..."
                   className="border border-gray-100 rounded-md px-3 py-2 w-full text-sm text-center"

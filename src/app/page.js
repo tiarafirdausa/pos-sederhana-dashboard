@@ -11,15 +11,28 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    const storedRole = localStorage.getItem("userRole");
-    setUserRole(storedRole);
-    setLoading(false);
+    const fetchUserRole = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/auth/me", {
+          credentials: "include", 
+        });
 
-    // Hanya redirect jika userRole null DAN loading sudah selesai
-    if (!storedRole && !loading) {
-      router.replace("/auth/login");
-    }
-  }, [router, loading]); 
+        if (res.ok) {
+          const data = await res.json();
+          setUserRole(data.role); 
+        } else {
+          router.replace("/auth/login");
+        }
+      } catch (error) {
+        console.error("Gagal mengambil user:", error);
+        router.replace("/auth/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserRole();
+  }, [router]);
 
   if (loading) {
     return <div>Loading...</div>;

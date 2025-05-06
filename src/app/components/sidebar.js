@@ -9,8 +9,24 @@ export default function Sidebar() {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const storedRole = localStorage.getItem("userRole");
-    setUserRole(storedRole);
+    const fetchUserRole = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/auth/me", {
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUserRole(data.role); 
+        } else {
+          console.log("Gagal mengambil data user");
+        }
+      } catch (error) {
+        console.error("Error saat fetch user role:", error);
+      }
+    };
+
+    fetchUserRole();
   }, []);
 
   if (!userRole) return null; 

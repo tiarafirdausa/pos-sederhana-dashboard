@@ -4,12 +4,18 @@ const db = require('./models/db');
 const menuRoutes = require('./routes/menuRoute');
 const authRoutes = require('./routes/authRoute');
 const orderRoutes = require('./routes/orderRoute'); 
+const cookieParser = require('cookie-parser');
 
 const port = 5000;
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true,
+}));
+
 app.use(express.json());
+app.use(cookieParser());
 
 // Route
 app.use('/menu', menuRoutes);

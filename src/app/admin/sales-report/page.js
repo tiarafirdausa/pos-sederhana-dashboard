@@ -1,7 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import StatCard from "../../components/statcard";
 import TransactionTable from "../../components/transactionTable";
 import Pagination from "../../components/pagination";
 
@@ -20,7 +18,7 @@ const formatRupiah = (amount) => {
   }).format(amount);
 };
 
-const itemsPerPage = 5;
+const itemsPerPage = 15;
 
 export default function SalesReport() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,7 +27,6 @@ export default function SalesReport() {
   const [error, setError] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [selectedStat, setSelectedStat] = useState(null);
   const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
 
   useEffect(() => {
@@ -54,30 +51,6 @@ export default function SalesReport() {
 
     fetchData();
   }, []);
-
-  const openStatDetail = async (category) => {
-    setSelectedStat({ title: category, details: [] });
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`http://localhost:5000/orders/${category}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const responseData = await response.json();
-      setSelectedStat({ title: category, details: responseData.details });
-    } catch (e) {
-      setError(e);
-      console.error(`Gagal mengambil detail statistik untuk ${category}:`, e);
-      setSelectedStat({ title: category, details: [] });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const closeStatDetail = () => {
-    setSelectedStat(null);
-  };
 
   const openTransactionDetail = (transaction) => {
     const formattedTransaction = {
@@ -121,35 +94,25 @@ export default function SalesReport() {
     setCurrentPage(1);
   };
 
-  // Calculate stats
-  const totalOrders = data.length;
-  const totalOmzet = data.reduce(
-    (sum, order) => sum + (parseFloat(order.total) || 0),
-    0
-  );
-  const allMenuOrders = data.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
-  const foodOrders = data.filter((order) => order.menu_category === "food");
-  const totalFoodOrders = foodOrders.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
-  const beverageOrders = data.filter(
-    (order) => order.menu_category === "beverage"
-  );
-  const totalBeverageOrders = beverageOrders.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
-  const dessertOrders = data.filter(
-    (order) => order.menu_category === "dessert"
-  );
-  const totalDessertOrders = dessertOrders.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
+  // Filter function
+  const handleFilter = ({ startDate, endDate, categoryFilter, typeFilter }) => {
+    const filtered = data.filter((order) => {
+      const orderDate = new Date(order.date).toISOString().slice(0, 10);
+
+      const dateCondition =
+        (!startDate || orderDate >= startDate) &&
+        (!endDate || orderDate <= endDate);
+
+      const categoryCondition =
+        !categoryFilter || order.menu_category === categoryFilter;
+
+      const typeCondition = !typeFilter || order.order_type === typeFilter;
+
+      return dateCondition && categoryCondition && typeCondition;
+    });
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -159,138 +122,12 @@ export default function SalesReport() {
         <p className="text-sm text-[var(--neutral-grey7)]">{today}</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard
-          title="Total Orders"
-          value={totalOrders}
-          iconSrc="/assets/icons/receipt.svg"
-        />
-        <StatCard
-          title="Total Omzet"
-          value={totalOmzet}
-          iconSrc="/assets/icons/wallet-money.svg"
-        />
-        <StatCard
-          title="All Menu Orders"
-          value={allMenuOrders}
-          iconSrc="/assets/icons/document.svg"
-        />
-        <StatCard
-          title="Foods"
-          value={totalFoodOrders}
-          iconSrc="/assets/icons/reserve.svg"
-          detailOnClick={() => openStatDetail("food")}
-        />
-        <StatCard
-          title="Beverages"
-          value={totalBeverageOrders}
-          iconSrc="/assets/icons/coffee.svg"
-          detailOnClick={() => openStatDetail("beverage")}
-        />
-        <StatCard
-          title="Desserts"
-          value={totalDessertOrders}
-          iconSrc="/assets/icons/cake.svg"
-          detailOnClick={() => openStatDetail("dessert")}
-        />
-      </div>
-
       <div className="bg-white shadow-md rounded-lg p-6">
-        {/* Filter Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="start-date"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Start
-              </label>
-              <input
-                type="date"
-                id="start-date"
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="finish-date"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Finish
-              </label>
-              <input
-                type="date"
-                id="finish-date"
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label
-                htmlFor="category"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Category
-              </label>
-              <select
-                id="category"
-                defaultValue=""
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              >
-                <option value="" disabled>
-                  Select Category
-                </option>
-                <option value="food">Food</option>
-                <option value="beverage">Beverage</option>
-                <option value="dessert">Dessert</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="type"
-                className="text-sm text-[var(--neutral-grey7)]"
-              >
-                Order Type
-              </label>
-              <select
-                id="type"
-                defaultValue=""
-                className="w-full border rounded-md p-2 text-sm border-[var(--neutral-grey2)] text-[var(--neutral-grey3)]"
-              >
-                <option value="" disabled>
-                  Select Order Type
-                </option>
-                <option value="dinein">Dine In</option>
-                <option value="takeaway">Take Away</option>
-                <option value="delivery">Delivery</option>
-              </select>
-            </div>
-
-            <div className="flex items-end gap-2">
-              <button className="w-full h-10 bg-[var(--blue1-main)] text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                Search
-              </button>
-              <button className="w-10 h-10 border border-[var(--neutral-grey5)] rounded-md hover:bg-gray-300 transition flex justify-center items-center">
-                <Image
-                  src="/assets/icons/frame.svg"
-                  alt="export"
-                  width={18}
-                  height={18}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabel Section */}
+        {/* Transaction Table dengan Filter */}
         <TransactionTable
           data={currentItems}
           openTransactionDetail={openTransactionDetail}
+          onFilter={handleFilter}
         />
 
         {/* Pagination*/}
@@ -424,66 +261,6 @@ export default function SalesReport() {
                   </>
                 )}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Detail Stat */}
-        {selectedStat && (
-          <div className="fixed inset-0 bg-black/30 shadow-md flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl shadow-md w-[90%] max-w-md space-y-4 relative">
-              {/* Close Button */}
-              <button
-                onClick={closeStatDetail}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
-                aria-label="Close"
-              >
-                &times;
-              </button>
-
-              <h4 className="text-2xl font-medium">{selectedStat.title}</h4>
-
-              {/* Search Input */}
-              <div className="relative w-full mb-4">
-                <Image
-                  src="/assets/icons/search-normal.svg"
-                  alt="Search Icon"
-                  width={16}
-                  height={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                />
-                <input
-                  type="text"
-                  placeholder="Enter the keyword here..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--neutral-grey2)] focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm font-light text-[var(--neutral-grey3)]"
-                />
-              </div>
-
-              {/* Table */}
-              {selectedStat.details && selectedStat.details.length > 0 ? (
-                <div className="space-y-2">
-                  <table className="w-full text-sm mt-2">
-                    <thead className="bg-gray-100">
-                      <tr className="text-left font-medium">
-                        <th className="p-3">Menu Name</th>
-                        <th className="p-3">Total Sales</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedStat.details.map((items, idx) => (
-                        <tr key={idx} className="border-b border-gray-100">
-                          <td className="p-3">{items.name}</td>
-                          <td className="p-3">{items.total}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Tidak ada data yang tersedia.
-                </p>
-              )}
             </div>
           </div>
         )}
