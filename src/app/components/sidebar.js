@@ -51,7 +51,7 @@ export default function Sidebar() {
     <aside className="w-52 h-screen bg-white p-4 space-y-6 fixed">
       {/* logo padipos */}
       <div className="text-2xl font-bold text-center">
-        <Image src="/assets/icons/Logo.svg" alt="padipos" width={130} height={50} />
+        <Image src="/assets/icons/Logo.svg" alt="padipos" width={130} height={50} priority/>
       </div>
 
       {/* menu */}

@@ -260,6 +260,7 @@ export default function Dashboard() {
                   src={`http://localhost:5000/${item.image}`}
                   alt={item.name}
                   fill
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="object-cover"
                 />
                 <span className="absolute top-1 right-1 bg-[var(--blue1-main)] text-white text-xs px-2 py-1 rounded-3xl">
@@ -756,7 +757,7 @@ export default function Dashboard() {
               ) : (
                 filteredArchiveOrders.map((order) => (
                   <div
-                    key={order.id}
+                    key={order.order_id}
                     className="bg-gray-100 rounded-md p-4 mb-2 flex items-center justify-between"
                   >
                     <div>

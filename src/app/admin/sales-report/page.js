@@ -3,13 +3,6 @@ import { useState, useEffect } from "react";
 import TransactionTable from "../../components/transactionTable";
 import Pagination from "../../components/pagination";
 
-const today = new Date().toLocaleDateString("id-ID", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
-
 const formatRupiah = (amount) => {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -28,6 +21,17 @@ export default function SalesReport() {
   const [filteredData, setFilteredData] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    const dateStr = new Date().toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    setToday(dateStr);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {

@@ -25,8 +25,6 @@ exports.createOrder = async (req, res) => {
     amountReceived,
   } = req.body;
 
-  console.log("Request body di backend:", req.body);
-
   if (
     !customerName ||
     !orderType ||
@@ -93,7 +91,7 @@ exports.createOrder = async (req, res) => {
     // 3. Insert ke tabel transactions
     const transactionDate = new Date();
     const amountChange = amountReceived - total;
-    const transactionStatus = "success"; 
+    const transactionStatus = "success";
 
     const [transactionResult] = await connection.execute(
       "INSERT INTO transaction (order_id, amount_change, amount_received, transaction_status, transaction_date) VALUES (?, ?, ?, ?, ?)",
@@ -140,8 +138,8 @@ exports.createOrder = async (req, res) => {
 };
 
 exports.getAllOrders = async (req, res) => {
-    try {
-      const [rows] = await db.execute(`
+  try {
+    const [rows] = await db.execute(`
         SELECT 
           o.id AS order_id,
           o.no_order,
@@ -165,23 +163,53 @@ exports.getAllOrders = async (req, res) => {
           oi.quantity,
           oi.notes,
           oi.price
-        FROM \`order\` o
+        FROM \`order\` o 
         LEFT JOIN transaction t ON t.order_id = o.id
         LEFT JOIN order_item oi ON oi.order_id = o.id
         LEFT JOIN menu m ON m.id = oi.menu_id
         ORDER BY o.date DESC
       `);
-  
-      res.status(200).json({ orders: rows });
-    } catch (error) {
-      console.error("Error saat mengambil semua order:", error);
-      res.status(500).json({
-        message: "Terjadi kesalahan server saat mengambil data order lengkap.",
-        error: error.message,
-      });
-    }
-  };
-  
+
+    // Group by order_id
+    const orders = {};
+    rows.forEach((row) => {
+      const id = row.order_id;
+      if (!orders[id]) {
+        orders[id] = {
+          ...row,
+          items: [],
+        };
+        delete orders[id].menu_id;
+        delete orders[id].menu_name;
+        delete orders[id].menu_category;
+        delete orders[id].price;
+        delete orders[id].quantity;
+        delete orders[id].notes;
+      }
+
+      if (row.menu_id) {
+        orders[id].items.push({
+          menu_id: row.menu_id,
+          menu_name: row.menu_name,
+          menu_category: row.menu_category,
+          price: row.price,
+          quantity: row.quantity,
+          notes: row.notes,
+        });
+      }
+    });
+
+    res.status(200).json({
+      orders: Object.values(orders).sort((a, b) => new Date(b.date) - new Date(a.date)),
+    });
+      } catch (error) {
+    console.error("Error saat mengambil semua order:", error);
+    res.status(500).json({
+      message: "Terjadi kesalahan server saat mengambil data order lengkap.",
+      error: error.message,
+    });
+  }
+};
 
 // Fungsi untuk mengambil order berdasarkan kategori
 exports.getOrderStatCategory = async (req, res) => {

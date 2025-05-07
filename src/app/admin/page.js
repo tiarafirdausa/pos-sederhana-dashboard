@@ -25,13 +25,6 @@ ChartJS.register(
   Legend
 );
 
-const today = new Date().toLocaleDateString("id-ID", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
-
 export default function Dashboard() {
   const [data, setData] = useState([]);
   const [selectedStat, setSelectedStat] = useState(null);
@@ -41,6 +34,18 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    const dateStr = new Date().toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    setToday(dateStr);
+  }, []);
 
   // bar chart data
   useEffect(() => {
@@ -126,33 +131,49 @@ export default function Dashboard() {
 
   // Calculate stats
   const totalOrders = data.length;
+
   const totalOmzet = data.reduce(
     (sum, order) => sum + (parseFloat(order.total) || 0),
     0
   );
-  const allMenuOrders = data.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
-  const foodOrders = data.filter((order) => order.menu_category === "food");
-  const totalFoodOrders = foodOrders.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
-  const beverageOrders = data.filter(
-    (order) => order.menu_category === "beverage"
-  );
-  const totalBeverageOrders = beverageOrders.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
-  const dessertOrders = data.filter(
-    (order) => order.menu_category === "dessert"
-  );
-  const totalDessertOrders = dessertOrders.reduce(
-    (sum, order) => (order.quantity ? sum + order.quantity : sum),
-    0
-  );
+
+  // Semua jumlah item (semua kategori)
+  const allMenuOrders = data.reduce((sum, order) => {
+    return (
+      sum +
+      order.items.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0)
+    );
+  }, 0);
+
+  // Makanan
+  const totalFoodOrders = data.reduce((sum, order) => {
+    return (
+      sum +
+      order.items
+        .filter((item) => item.menu_category === "food")
+        .reduce((itemSum, item) => itemSum + (item.quantity || 0), 0)
+    );
+  }, 0);
+
+  // Minuman
+  const totalBeverageOrders = data.reduce((sum, order) => {
+    return (
+      sum +
+      order.items
+        .filter((item) => item.menu_category === "beverage")
+        .reduce((itemSum, item) => itemSum + (item.quantity || 0), 0)
+    );
+  }, 0);
+
+  // Dessert
+  const totalDessertOrders = data.reduce((sum, order) => {
+    return (
+      sum +
+      order.items
+        .filter((item) => item.menu_category === "dessert")
+        .reduce((itemSum, item) => itemSum + (item.quantity || 0), 0)
+    );
+  }, 0);
 
   return (
     <div className="space-y-6">
