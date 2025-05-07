@@ -51,16 +51,20 @@ export default function Dashboard() {
   useEffect(() => {
     if (data.length > 0) {
       // Process data for the bar chart (total sales per specified category)
+      // ✅ FIXED
       const categorySales = data.reduce((acc, order) => {
-        const category = order.menu_category;
-        const total = parseFloat(order.total) || 0;
-        if (
-          category === "food" ||
-          category === "beverage" ||
-          category === "dessert"
-        ) {
-          acc[category] = (acc[category] || 0) + total;
-        }
+        order.items.forEach((item) => {
+          const category = item.menu_category;
+          const price = parseFloat(item.price) || 0;
+          const quantity = parseInt(item.quantity) || 0;
+          if (
+            category === "food" ||
+            category === "beverage" ||
+            category === "dessert"
+          ) {
+            acc[category] = (acc[category] || 0) + price * quantity;
+          }
+        });
         return acc;
       }, {});
 
